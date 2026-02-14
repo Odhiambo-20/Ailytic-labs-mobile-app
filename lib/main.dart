@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -40,6 +41,9 @@ class AilyticLabsApp extends StatelessWidget {
         '/careers': (context) => const CareersPage(),
         '/news': (context) => const PlaceholderPage(title: 'News'),
         '/contact': (context) => const ContactPage(),
+        '/signup': (context) => const SignUpPage(),
+        '/login': (context) => const PlaceholderPage(title: 'Login'),
+        '/privacy': (context) => const PlaceholderPage(title: 'Privacy & Legal'),
         '/support': (context) => const PlaceholderPage(title: 'Support'),
         '/partners': (context) => const PlaceholderPage(title: 'Partners'),
         '/demo': (context) => const DemoPage(),
@@ -5858,6 +5862,410 @@ class _CareerJob {
   });
 }
 
+class SignUpPage extends StatefulWidget {
+  const SignUpPage({super.key});
+
+  @override
+  State<SignUpPage> createState() => _SignUpPageState();
+}
+
+class _SignUpPageState extends State<SignUpPage> {
+  static const String _apiBaseUrl =
+      'http://allytic-labs-prod.eba-pukad2pd.us-east-1.elasticbeanstalk.com/api/v1';
+
+  final _formKey = GlobalKey<FormState>();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
+  bool _showPassword = false;
+  bool _showConfirmPassword = false;
+  bool _isLoading = false;
+  String _apiError = '';
+
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  String? _required(String? value, String field) {
+    if (value == null || value.trim().isEmpty) return '$field is required';
+    return null;
+  }
+
+  String? _validateEmail(String? value) {
+    final required = _required(value, 'Email');
+    if (required != null) return required;
+    final email = value!.trim();
+    if (!RegExp(r'^\S+@\S+\.\S+$').hasMatch(email)) {
+      return 'Email is invalid';
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    final required = _required(value, 'Password');
+    if (required != null) return required;
+    if (value!.length < 8) return 'Password must be at least 8 characters';
+    return null;
+  }
+
+  String? _validateConfirmPassword(String? value) {
+    final required = _required(value, 'Confirm password');
+    if (required != null) return required;
+    if (value != _passwordController.text) return 'Passwords do not match';
+    return null;
+  }
+
+  Map<String, dynamic>? _tryDecodeJson(String body) {
+    try {
+      final parsed = jsonDecode(body);
+      if (parsed is Map<String, dynamic>) return parsed;
+    } catch (_) {}
+    return null;
+  }
+
+  Future<void> _submit() async {
+    FocusScope.of(context).unfocus();
+    setState(() => _apiError = '');
+
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    final email = _emailController.text.trim();
+    final payload = {
+      'username': email,
+      'email': email,
+      'password': _passwordController.text,
+      'confirmPassword': _confirmPasswordController.text,
+      'firstName': _firstNameController.text.trim(),
+      'lastName': _lastNameController.text.trim(),
+      'name': '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}',
+    };
+
+    HttpClient? client;
+    try {
+      final uri = Uri.parse('$_apiBaseUrl/auth/register');
+      client = HttpClient()..connectionTimeout = const Duration(seconds: 20);
+      final request = await client.postUrl(uri);
+      request.headers.set(HttpHeaders.contentTypeHeader, 'application/json');
+      request.add(utf8.encode(jsonEncode(payload)));
+
+      final response = await request.close();
+      final body = await utf8.decodeStream(response);
+      final contentType = response.headers.contentType?.mimeType ?? '';
+      final data = _tryDecodeJson(body);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        if (!mounted) return;
+        await showDialog<void>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Account Created'),
+            content: const Text('Account created successfully. Please login with your credentials.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+        if (!mounted) return;
+        Navigator.pushNamed(context, '/login');
+      } else {
+        String message = 'Registration failed. Please try again.';
+        if (data != null) {
+          if (data['message'] is String && (data['message'] as String).trim().isNotEmpty) {
+            message = data['message'] as String;
+          } else if (data['errors'] is Map) {
+            final entries = <String>[];
+            (data['errors'] as Map).forEach((k, v) {
+              entries.add('$k: $v');
+            });
+            if (entries.isNotEmpty) {
+              message = entries.join('\n');
+            }
+          }
+        } else if (!contentType.contains('application/json')) {
+          message = 'Server returned invalid response. Please try again.';
+        }
+
+        if (!mounted) return;
+        setState(() => _apiError = message);
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _apiError = 'Unable to connect to server. Please check your internet connection.';
+      });
+    } finally {
+      client?.close(force: true);
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Allytic Labs',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: const Color(0xFF111827),
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 460),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: 10),
+                          const Text(
+                            'Create Account',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Color(0xFF111827),
+                              fontSize: 38,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 22),
+                          if (_apiError.isNotEmpty)
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 14),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFEF2F2),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: const Color(0xFFFECACA)),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Icon(Icons.error_outline, color: Color(0xFFDC2626), size: 20),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      _apiError,
+                                      style: const TextStyle(color: Color(0xFFB91C1C), fontSize: 13),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          _AuthInputField(
+                            label: 'First Name',
+                            controller: _firstNameController,
+                            enabled: !_isLoading,
+                            validator: (v) => _required(v, 'First name'),
+                          ),
+                          const SizedBox(height: 12),
+                          _AuthInputField(
+                            label: 'Last Name',
+                            controller: _lastNameController,
+                            enabled: !_isLoading,
+                            validator: (v) => _required(v, 'Last name'),
+                          ),
+                          const SizedBox(height: 12),
+                          _AuthInputField(
+                            label: 'Email',
+                            controller: _emailController,
+                            enabled: !_isLoading,
+                            keyboardType: TextInputType.emailAddress,
+                            validator: _validateEmail,
+                          ),
+                          const SizedBox(height: 12),
+                          _AuthInputField(
+                            label: 'Password',
+                            controller: _passwordController,
+                            enabled: !_isLoading,
+                            obscureText: !_showPassword,
+                            validator: _validatePassword,
+                            suffix: IconButton(
+                              onPressed: _isLoading ? null : () => setState(() => _showPassword = !_showPassword),
+                              icon: Icon(_showPassword ? Icons.visibility_off : Icons.visibility),
+                              color: const Color(0xFF6B7280),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          _AuthInputField(
+                            label: 'Confirm Password',
+                            controller: _confirmPasswordController,
+                            enabled: !_isLoading,
+                            obscureText: !_showConfirmPassword,
+                            validator: _validateConfirmPassword,
+                            suffix: IconButton(
+                              onPressed: _isLoading ? null : () => setState(() => _showConfirmPassword = !_showConfirmPassword),
+                              icon: Icon(_showConfirmPassword ? Icons.visibility_off : Icons.visibility),
+                              color: const Color(0xFF6B7280),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            height: 50,
+                            child: FilledButton(
+                              onPressed: _isLoading ? null : _submit,
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFF3B82F6),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                    )
+                                  : const Text('Create Account'),
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          Row(
+                            children: const [
+                              Expanded(child: Divider(color: Color(0xFFD1D5DB))),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                child: Text('Already have an account?', style: TextStyle(color: Color(0xFF6B7280))),
+                              ),
+                              Expanded(child: Divider(color: Color(0xFFD1D5DB))),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          SizedBox(
+                            height: 50,
+                            child: OutlinedButton(
+                              onPressed: _isLoading ? null : () => Navigator.pushNamed(context, '/login'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(0xFF374151),
+                                side: const BorderSide(color: Color(0xFFD1D5DB)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                              child: const Text('Sign In'),
+                            ),
+                          ),
+                          const SizedBox(height: 22),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text('Allytic Labs © 2026', style: TextStyle(color: Color(0xFF6B7280), fontSize: 12)),
+                              TextButton(
+                                onPressed: () => Navigator.pushNamed(context, '/privacy'),
+                                child: const Text('Privacy & Legal'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pushNamed(context, '/contact'),
+                                child: const Text('Contact'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AuthInputField extends StatelessWidget {
+  final String label;
+  final TextEditingController controller;
+  final bool enabled;
+  final bool obscureText;
+  final Widget? suffix;
+  final TextInputType? keyboardType;
+  final String? Function(String?)? validator;
+
+  const _AuthInputField({
+    required this.label,
+    required this.controller,
+    required this.enabled,
+    this.obscureText = false,
+    this.suffix,
+    this.keyboardType,
+    this.validator,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(color: Color(0xFF374151), fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 6),
+        TextFormField(
+          controller: controller,
+          enabled: enabled,
+          obscureText: obscureText,
+          keyboardType: keyboardType,
+          validator: validator,
+          style: const TextStyle(color: Color(0xFF111827)),
+          decoration: InputDecoration(
+            hintText: label,
+            hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
+            suffixIcon: suffix,
+            filled: true,
+            fillColor: enabled ? Colors.white : const Color(0xFFF3F4F6),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFFEF4444)),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          ),
+        ),
+      ],
+    );
+  }
+}
 class PlaceholderPage extends StatelessWidget {
   final String title;
 
