@@ -37,7 +37,7 @@ class AilyticLabsApp extends StatelessWidget {
         '/solutions': (context) => const PlaceholderPage(title: 'Solutions'),
         '/research': (context) => const PlaceholderPage(title: 'Research'),
         '/about': (context) => const PlaceholderPage(title: 'About'),
-        '/careers': (context) => const PlaceholderPage(title: 'Careers'),
+        '/careers': (context) => const CareersPage(),
         '/news': (context) => const PlaceholderPage(title: 'News'),
         '/contact': (context) => const ContactPage(),
         '/support': (context) => const PlaceholderPage(title: 'Support'),
@@ -5528,6 +5528,333 @@ class SolarBenefitItem {
     required this.description,
     required this.colorA,
     required this.colorB,
+  });
+}
+
+class CareersPage extends StatelessWidget {
+  const CareersPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.sizeOf(context).width < 900;
+
+    const jobs = [
+      _CareerJob(
+        title: 'Senior Robotics Engineer',
+        location: 'Nairobi, Kenya',
+        type: 'Full-time',
+        team: 'Robotics',
+        summary: 'Design and ship autonomous robotic systems for industrial and agricultural use cases.',
+      ),
+      _CareerJob(
+        title: 'Drone Systems Developer',
+        location: 'Lagos, Nigeria',
+        type: 'Full-time',
+        team: 'Drones',
+        summary: 'Build flight-control, telemetry, and computer-vision modules for enterprise drone products.',
+      ),
+      _CareerJob(
+        title: 'Solar Solutions Consultant',
+        location: 'Accra, Ghana',
+        type: 'Full-time',
+        team: 'Energy',
+        summary: 'Lead customer discovery, sizing, and solution architecture for commercial solar deployments.',
+      ),
+      _CareerJob(
+        title: 'Frontend Flutter Engineer',
+        location: 'Remote',
+        type: 'Contract',
+        team: 'Platform',
+        summary: 'Develop responsive, high-performance mobile and web interfaces across product lines.',
+      ),
+    ];
+
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.fromLTRB(20, isMobile ? 90 : 120, 20, 54),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF0B1224), Color(0xFF1E3A8A), Color(0xFF0EA5E9)],
+                ),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.12),
+                      border: Border.all(color: Colors.white24),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: const Text('Join Allytic Labs', style: TextStyle(color: Color(0xFFDBEAFE))),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    'Build The Future With Us',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: isMobile ? 44 : 72, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'We are hiring engineers, researchers, and operators across robotics, drones, and solar energy.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Color(0xFFE2E8F0), fontSize: 21),
+                  ),
+                  const SizedBox(height: 18),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      GradientButton(
+                        text: 'View Open Roles',
+                        a: const Color(0xFF2563EB),
+                        b: const Color(0xFF06B6D4),
+                        onPressed: () {},
+                      ),
+                      OutlinedButton(
+                        onPressed: () => Navigator.pushNamed(context, '/contact'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: const BorderSide(color: Colors.white54),
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+                        ),
+                        child: const Text('Contact Recruiting'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              color: const Color(0xFFF8FAFC),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 42),
+              child: Column(
+                children: [
+                  Text(
+                    'Why Work Here',
+                    style: TextStyle(
+                      color: const Color(0xFF0F172A),
+                      fontSize: isMobile ? 38 : 56,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'We build real-world systems with measurable impact and strong engineering standards.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Color(0xFF334155), fontSize: 19),
+                  ),
+                  const SizedBox(height: 18),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: const [
+                      _CareerBenefitCard(
+                        icon: Icons.bolt,
+                        title: 'High-Impact Work',
+                        text: 'Ship products used in agriculture, logistics, and energy markets.',
+                      ),
+                      _CareerBenefitCard(
+                        icon: Icons.groups_2,
+                        title: 'Strong Team',
+                        text: 'Collaborate with multidisciplinary engineers and domain specialists.',
+                      ),
+                      _CareerBenefitCard(
+                        icon: Icons.school,
+                        title: 'Growth',
+                        text: 'Clear ownership, mentorship, and opportunities to lead initiatives.',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 42),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF0F172A), Color(0xFF0B1224)],
+                ),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'Open Positions',
+                    style: TextStyle(fontSize: isMobile ? 36 : 52, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Select a role and apply through our recruiting team.',
+                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 19),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1120),
+                    child: Column(
+                      children: jobs
+                          .map(
+                            (job) => _CareerJobCard(
+                              job: job,
+                              onApply: () => Navigator.pushNamed(context, '/contact'),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 34),
+              color: const Color(0xFF111827),
+              child: const Column(
+                children: [
+                  Text('careers@ailyticslabs.com', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
+                  SizedBox(height: 8),
+                  Text(
+                    'Send your CV and portfolio. Include the role title in your email subject.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Color(0xFF9CA3AF)),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CareerBenefitCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String text;
+
+  const _CareerBenefitCard({
+    required this.icon,
+    required this.title,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 340,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: const [BoxShadow(color: Color(0x12000000), blurRadius: 10, offset: Offset(0, 4))],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: const Color(0xFF1D4ED8), size: 30),
+            const SizedBox(height: 10),
+            Text(title, style: const TextStyle(color: Color(0xFF0F172A), fontSize: 24, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            Text(text, style: const TextStyle(color: Color(0xFF334155), fontSize: 16)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CareerJobCard extends StatelessWidget {
+  final _CareerJob job;
+  final VoidCallback onApply;
+
+  const _CareerJobCard({required this.job, required this.onApply});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF111827),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFF1F2937)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(job.title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _jobChip(job.team),
+                    _jobChip(job.type),
+                    _jobChip(job.location),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(job.summary, style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 16)),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          GradientButton(
+            text: 'Apply',
+            a: const Color(0xFF2563EB),
+            b: const Color(0xFF06B6D4),
+            onPressed: onApply,
+            compact: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _jobChip(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Text(label, style: const TextStyle(color: Color(0xFFCBD5E1), fontSize: 13)),
+    );
+  }
+}
+
+class _CareerJob {
+  final String title;
+  final String location;
+  final String type;
+  final String team;
+  final String summary;
+
+  const _CareerJob({
+    required this.title,
+    required this.location,
+    required this.type,
+    required this.team,
+    required this.summary,
   });
 }
 
