@@ -39,7 +39,7 @@ class AilyticLabsApp extends StatelessWidget {
         '/about': (context) => const PlaceholderPage(title: 'About'),
         '/careers': (context) => const PlaceholderPage(title: 'Careers'),
         '/news': (context) => const PlaceholderPage(title: 'News'),
-        '/contact': (context) => const PlaceholderPage(title: 'Contact'),
+        '/contact': (context) => const ContactPage(),
         '/support': (context) => const PlaceholderPage(title: 'Support'),
         '/partners': (context) => const PlaceholderPage(title: 'Partners'),
         '/demo': (context) => const DemoPage(),
@@ -3984,6 +3984,537 @@ class CatalogRobot {
     required this.rating,
     required this.reviews,
   });
+}
+
+class ContactPage extends StatefulWidget {
+  const ContactPage({super.key});
+
+  @override
+  State<ContactPage> createState() => _ContactPageState();
+}
+
+class _ContactPageState extends State<ContactPage> {
+  final _formKey = GlobalKey<FormState>();
+
+  String firstName = '';
+  String lastName = '';
+  String email = '';
+  String helpType = 'Product Information';
+  String message = '';
+
+  bool isSubmitting = false;
+  String? submitStatus; // success | error
+  String errorMessage = '';
+
+  Future<void> _handleSubmit() async {
+    final form = _formKey.currentState;
+    if (form == null || !form.validate()) return;
+
+    form.save();
+
+    setState(() {
+      isSubmitting = true;
+      submitStatus = null;
+      errorMessage = '';
+    });
+
+    try {
+      // Simulated backend call
+      await Future.delayed(const Duration(seconds: 2));
+
+      if (!mounted) return;
+      setState(() {
+        submitStatus = 'success';
+        isSubmitting = false;
+      });
+
+      _formKey.currentState?.reset();
+      firstName = '';
+      lastName = '';
+      email = '';
+      helpType = 'Product Information';
+      message = '';
+
+      Future.delayed(const Duration(seconds: 5), () {
+        if (!mounted) return;
+        setState(() => submitStatus = null);
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        submitStatus = 'error';
+        isSubmitting = false;
+        errorMessage =
+            'Failed to send message. Please try again or contact us directly via email.';
+      });
+    }
+  }
+
+  String? _required(String? value) {
+    if (value == null || value.trim().isEmpty) return 'Required';
+    return null;
+  }
+
+  String? _emailValidator(String? value) {
+    if (value == null || value.trim().isEmpty) return 'Required';
+    final ok = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value);
+    if (!ok) return 'Enter a valid email';
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.sizeOf(context).width < 960;
+
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildHero(isMobile),
+            Transform.translate(
+              offset: const Offset(0, -30),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1300),
+                  child: isMobile
+                      ? Column(
+                          children: [
+                            _buildFormCard(),
+                            const SizedBox(height: 14),
+                            _buildSidebar(),
+                          ],
+                        )
+                      : Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(flex: 2, child: _buildFormCard()),
+                            const SizedBox(width: 14),
+                            Expanded(child: _buildSidebar()),
+                          ],
+                        ),
+                ),
+              ),
+            ),
+            _buildFooter(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHero(bool isMobile) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: [Color(0xFF0F172A), Color(0xFF1E3A8A), Color(0xFF1E293B)],
+        ),
+      ),
+      child: Column(
+        children: [
+          Text(
+            'Get in Touch',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: isMobile ? 48 : 68, fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'We would love to hear from you. Send us a message and we will respond as soon as possible.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Color(0xFFBFDBFE), fontSize: 20),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFormCard() {
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, 8)),
+        ],
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: const Color(0xFFF8FAFC),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
+            ),
+          ),
+        ),
+        child: DefaultTextStyle(
+          style: const TextStyle(color: Color(0xFF0F172A)),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Send us a message',
+                  style: TextStyle(fontSize: 36, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Fill out the form and our team will get back to you within 24 hours.',
+                  style: TextStyle(color: Color(0xFF475569), fontSize: 16),
+                ),
+                const SizedBox(height: 14),
+                if (submitStatus == 'success')
+                  _statusBanner(
+                    good: true,
+                    title: 'Message sent successfully!',
+                    body: 'Thank you for contacting us. We will get back to you within 24 hours.',
+                  ),
+                if (submitStatus == 'error')
+                  _statusBanner(
+                    good: false,
+                    title: 'Failed to send message',
+                    body: errorMessage,
+                  ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _ContactField(
+                        label: 'First name *',
+                        validator: _required,
+                        onSaved: (v) => firstName = v ?? '',
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _ContactField(
+                        label: 'Last name',
+                        onSaved: (v) => lastName = v ?? '',
+                      ),
+                    ),
+                  ],
+                ),
+                _ContactField(
+                  label: 'Email address *',
+                  keyboardType: TextInputType.emailAddress,
+                  validator: _emailValidator,
+                  onSaved: (v) => email = v ?? '',
+                ),
+                DropdownButtonFormField<String>(
+                  value: helpType,
+                  decoration: const InputDecoration(labelText: 'How can we help you?'),
+                  items: const [
+                    DropdownMenuItem(value: 'Product Information', child: Text('Product Information')),
+                    DropdownMenuItem(value: 'Technical Support', child: Text('Technical Support')),
+                    DropdownMenuItem(value: 'Partnership Inquiry', child: Text('Partnership Inquiry')),
+                    DropdownMenuItem(value: 'Media Inquiry', child: Text('Media Inquiry')),
+                    DropdownMenuItem(value: 'Sales Inquiry', child: Text('Sales Inquiry')),
+                    DropdownMenuItem(value: 'Other', child: Text('Other')),
+                  ],
+                  onChanged: (v) => setState(() => helpType = v ?? 'Product Information'),
+                ),
+                const SizedBox(height: 10),
+                TextFormField(
+                  minLines: 6,
+                  maxLines: 6,
+                  decoration: const InputDecoration(labelText: 'Your message'),
+                  onSaved: (v) => message = v ?? '',
+                ),
+                const SizedBox(height: 14),
+                FilledButton.icon(
+                  onPressed: isSubmitting ? null : _handleSubmit,
+                  icon: isSubmitting
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.send),
+                  label: Text(isSubmitting ? 'Sending...' : 'Send Message'),
+                ),
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFBFDBFE)),
+                  ),
+                  child: const Text(
+                    'Note: We do not process job applications via this form. For career opportunities, email recruitment@ailyticslabs.com',
+                    style: TextStyle(color: Color(0xFF1E3A8A)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _statusBanner({required bool good, required String title, required String body}) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: good ? const Color(0xFFF0FDF4) : const Color(0xFFFEF2F2),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: good ? const Color(0xFFBBF7D0) : const Color(0xFFFECACA)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(good ? Icons.check_circle : Icons.error, color: good ? const Color(0xFF16A34A) : const Color(0xFFDC2626)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: TextStyle(fontWeight: FontWeight.w700, color: good ? const Color(0xFF166534) : const Color(0xFF991B1B))),
+                const SizedBox(height: 2),
+                Text(body, style: TextStyle(color: good ? const Color(0xFF166534) : const Color(0xFF991B1B))),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSidebar() {
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, 8)),
+            ],
+          ),
+          child: const DefaultTextStyle(
+            style: TextStyle(color: Color(0xFF0F172A)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Contact Info', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+                SizedBox(height: 14),
+                _InfoRow(icon: Icons.mail, title: 'Email', body: 'info@ailyticslabs.com\nbusiness@ailyticslabs.com'),
+                SizedBox(height: 10),
+                _InfoRow(icon: Icons.phone, title: 'Phone', body: '+254 748 630 243'),
+                SizedBox(height: 10),
+                _InfoRow(icon: Icons.location_on, title: 'Address', body: 'P.O Box 00100\nNairobi\nKenya'),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: [Color(0xFF0F172A), Color(0xFF1E3A8A)]),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Business Hours', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 12),
+              _hours('Monday - Friday', '9:00 - 18:00'),
+              _hours('Saturday', '10:00 - 16:00'),
+              _hours('Sunday', 'Closed'),
+              const SizedBox(height: 12),
+              const Divider(color: Color(0x335B9BF8)),
+              const SizedBox(height: 10),
+              const Text('Follow us on social media', style: TextStyle(color: Color(0xFFBFDBFE))),
+              const SizedBox(height: 8),
+              const Row(
+                children: [
+                  _SocialIcon(icon: Icons.camera_alt),
+                  SizedBox(width: 8),
+                  _SocialIcon(icon: Icons.code),
+                  SizedBox(width: 8),
+                  _SocialIcon(icon: Icons.play_arrow),
+                  SizedBox(width: 8),
+                  _SocialIcon(icon: Icons.business),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _hours(String d, String t) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          Text(d, style: const TextStyle(color: Color(0xFFBFDBFE))),
+          const Spacer(),
+          Text(t, style: const TextStyle(fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooter() {
+    Widget link(String t, String r) => TextButton(
+          onPressed: () => Navigator.pushNamed(context, r),
+          child: Text(t, style: const TextStyle(color: Color(0xFF94A3B8))),
+        );
+
+    return Container(
+      width: double.infinity,
+      color: const Color(0xFF0F172A),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 28),
+      child: Column(
+        children: [
+          Wrap(
+            spacing: 24,
+            runSpacing: 12,
+            alignment: WrapAlignment.spaceBetween,
+            children: [
+              const SizedBox(
+                width: 260,
+                child: Text('Pioneering the future of robotics, drones, and renewable energy.'),
+              ),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('Solutions', style: TextStyle(fontWeight: FontWeight.w700)),
+                link('Robotics', '/robots'),
+                link('Drones', '/drones'),
+                link('Solar Panels', '/solarpanels'),
+              ]),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: const [
+                Text('Applications', style: TextStyle(fontWeight: FontWeight.w700)),
+                SizedBox(height: 8),
+                Text('Academic Research', style: TextStyle(color: Color(0xFF94A3B8))),
+                Text('Agriculture', style: TextStyle(color: Color(0xFF94A3B8))),
+                Text('Construction', style: TextStyle(color: Color(0xFF94A3B8))),
+                Text('Industrial', style: TextStyle(color: Color(0xFF94A3B8))),
+              ]),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('Company', style: TextStyle(fontWeight: FontWeight.w700)),
+                const SizedBox(height: 8),
+                const Text('Our Story', style: TextStyle(color: Color(0xFF94A3B8))),
+                const Text('Careers', style: TextStyle(color: Color(0xFF94A3B8))),
+                const Text('Press', style: TextStyle(color: Color(0xFF94A3B8))),
+                link('Contact Us', '/contact'),
+              ]),
+            ],
+          ),
+          const SizedBox(height: 14),
+          const Divider(color: Color(0xFF1E293B)),
+          const SizedBox(height: 8),
+          const Text('© 2026 Ailytic Labs. All rights reserved', style: TextStyle(color: Color(0xFF94A3B8))),
+        ],
+      ),
+    );
+  }
+}
+
+class _ContactField extends StatelessWidget {
+  final String label;
+  final TextInputType? keyboardType;
+  final FormFieldValidator<String>? validator;
+  final FormFieldSetter<String>? onSaved;
+
+  const _ContactField({
+    required this.label,
+    this.keyboardType,
+    this.validator,
+    this.onSaved,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: TextFormField(
+        keyboardType: keyboardType,
+        validator: validator,
+        onSaved: onSaved,
+        decoration: InputDecoration(labelText: label),
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String body;
+
+  const _InfoRow({required this.icon, required this.title, required this.body});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: const Color(0xFFE0F2FE),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: const Color(0xFF2563EB)),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+              const SizedBox(height: 2),
+              Text(body, style: const TextStyle(color: Color(0xFF475569))),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SocialIcon extends StatelessWidget {
+  final IconData icon;
+
+  const _SocialIcon({required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Icon(icon, size: 18),
+    );
+  }
 }
 
 class PlaceholderPage extends StatelessWidget {
