@@ -42,7 +42,7 @@ class AilyticLabsApp extends StatelessWidget {
         '/partners': (context) => const PlaceholderPage(title: 'Partners'),
         '/demo': (context) => const DemoPlaceholderPage(),
         '/order': (context) => const OrderPage(),
-        '/latest-models': (context) => const PlaceholderPage(title: 'Latest Models'),
+        '/latest-models': (context) => const LatestModelsPage(),
        
       },
     );
@@ -2063,6 +2063,340 @@ class OrderProduct {
     required this.description,
     required this.image,
     required this.price,
+  });
+}
+
+class LatestModelsPage extends StatefulWidget {
+  const LatestModelsPage({super.key});
+
+  @override
+  State<LatestModelsPage> createState() => _LatestModelsPageState();
+}
+
+class _LatestModelsPageState extends State<LatestModelsPage> {
+  bool loading = true;
+  List<LatestModelItem> drones = [];
+
+  final List<LatestModelItem> allDrones = const [
+    LatestModelItem(
+      id: 'drone-1',
+      name: 'DJI Air 3S',
+      tagline: 'AI-Powered Reconnaissance',
+      description: 'Next-gen drone with advanced threat detection and 500km range',
+      image: 'assets/DJI Air 3S.avif',
+      timeline: 'Q2 2025',
+      gradientA: Color(0xFF2563EB),
+      gradientB: Color(0xFF0891B2),
+    ),
+    LatestModelItem(
+      id: 'drone-2',
+      name: 'DJI Avata 2 Fly More Combo',
+      tagline: 'Heavy-Lift Cargo Master',
+      description: 'Autonomous logistics drone with 500kg payload capacity',
+      image: 'assets/dji avata 2 fly more combo.jpg',
+      timeline: 'Q3 2025',
+      gradientA: Color(0xFF16A34A),
+      gradientB: Color(0xFF059669),
+    ),
+    LatestModelItem(
+      id: 'drone-3',
+      name: 'DJI Mavic 4 Pro Drone Combo',
+      tagline: 'Precision Agriculture',
+      description: 'Hyperspectral imaging for sustainable farming solutions',
+      image: 'assets/DJI Mavic 4 Pro Drone Combo.png',
+      timeline: 'Q2 2025',
+      gradientA: Color(0xFF9333EA),
+      gradientB: Color(0xFFDB2777),
+    ),
+    LatestModelItem(
+      id: 'drone-4',
+      name: 'Mavic 2',
+      tagline: 'Professional Cinema',
+      description: '8K HDR recording with advanced gimbal stabilization',
+      image: 'assets/mavic 2.jpg',
+      timeline: 'January 2025',
+      gradientA: Color(0xFFEA580C),
+      gradientB: Color(0xFFDC2626),
+    ),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDrones();
+  }
+
+  Future<void> _loadDrones() async {
+    setState(() => loading = true);
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (!mounted) return;
+    setState(() {
+      drones = allDrones;
+      loading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.sizeOf(context).width < 900;
+
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF0F172A), Color(0xFF1E3A8A), Color(0xFF0F172A)],
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
+                child: Column(
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: () => Navigator.maybePop(context),
+                        icon: const Icon(Icons.arrow_back),
+                        label: const Text('Back'),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Latest Drone Models',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: isMobile ? 42 : 66,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Discover cutting-edge drone technology designed to transform industries and push innovation forward.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Color(0xFFBFDBFE), fontSize: 20),
+                    ),
+                    const SizedBox(height: 22),
+                    if (loading)
+                      Column(
+                        children: const [
+                          SizedBox(
+                            width: 42,
+                            height: 42,
+                            child: CircularProgressIndicator(strokeWidth: 3),
+                          ),
+                          SizedBox(height: 10),
+                          Text('Loading latest drone models...'),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            if (!loading)
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: GridView.builder(
+                  itemCount: drones.length,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: isMobile ? 1 : 2,
+                    crossAxisSpacing: 14,
+                    mainAxisSpacing: 14,
+                    childAspectRatio: isMobile ? 1 : 1.14,
+                  ),
+                  itemBuilder: (context, index) {
+                    final d = drones[index];
+                    return Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          _AssetBackground(assetPath: d.image),
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [
+                                  Colors.black.withOpacity(0.9),
+                                  Colors.black.withOpacity(0.4),
+                                  Colors.transparent,
+                                ],
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 12,
+                            right: 12,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.45),
+                                borderRadius: BorderRadius.circular(999),
+                                border: Border.all(color: Colors.white24),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.calendar_today, size: 14),
+                                  const SizedBox(width: 6),
+                                  Text(d.timeline),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            left: 16,
+                            right: 16,
+                            bottom: 16,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(colors: [d.gradientA, d.gradientB]),
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                  child: Text(
+                                    d.tagline,
+                                    style: const TextStyle(fontWeight: FontWeight.w700),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Text(d.name,
+                                    style: const TextStyle(
+                                      fontSize: 30,
+                                      fontWeight: FontWeight.w800,
+                                    )),
+                                const SizedBox(height: 8),
+                                Text(d.description, style: const TextStyle(color: Color(0xFFBFDBFE))),
+                                const SizedBox(height: 10),
+                                DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(colors: [d.gradientA, d.gradientB]),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: TextButton.icon(
+                                    onPressed: () {},
+                                    iconAlignment: IconAlignment.end,
+                                    icon: const Icon(Icons.chevron_right),
+                                    label: const Text('Learn More', style: TextStyle(fontWeight: FontWeight.w700)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [Color(0x4D1E3A8A), Color(0x4D6D28D9)],
+                ),
+                border: Border(top: BorderSide(color: Color(0x33FFFFFF))),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'Stay Ahead of Innovation',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: isMobile ? 36 : 56, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Get updates on new launches, early access opportunities, and technology insights.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Color(0xFFBFDBFE), fontSize: 20),
+                  ),
+                  const SizedBox(height: 16),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 640),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            decoration: InputDecoration(
+                              hintText: 'Enter your email',
+                              hintStyle: const TextStyle(color: Color(0x8093C5FD)),
+                              filled: true,
+                              fillColor: Colors.white.withOpacity(0.08),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: const BorderSide(color: Color(0x4DFFFFFF)),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: const BorderSide(color: Color(0x4DFFFFFF)),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(colors: [Color(0xFF2563EB), Color(0xFF7C3AED)]),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: TextButton(
+                            onPressed: () {},
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 14),
+                              child: Text('Subscribe', style: TextStyle(fontWeight: FontWeight.w800)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class LatestModelItem {
+  final String id;
+  final String name;
+  final String tagline;
+  final String description;
+  final String image;
+  final String timeline;
+  final Color gradientA;
+  final Color gradientB;
+
+  const LatestModelItem({
+    required this.id,
+    required this.name,
+    required this.tagline,
+    required this.description,
+    required this.image,
+    required this.timeline,
+    required this.gradientA,
+    required this.gradientB,
   });
 }
 
