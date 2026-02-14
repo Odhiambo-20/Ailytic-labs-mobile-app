@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const AilyticLabsApp());
@@ -42,7 +43,7 @@ class AilyticLabsApp extends StatelessWidget {
         '/news': (context) => const PlaceholderPage(title: 'News'),
         '/contact': (context) => const ContactPage(),
         '/signup': (context) => const SignUpPage(),
-        '/login': (context) => const PlaceholderPage(title: 'Login'),
+        '/login': (context) => const LoginPage(),
         '/privacy': (context) => const PlaceholderPage(title: 'Privacy & Legal'),
         '/support': (context) => const PlaceholderPage(title: 'Support'),
         '/partners': (context) => const PlaceholderPage(title: 'Partners'),
@@ -5860,6 +5861,381 @@ class _CareerJob {
     required this.team,
     required this.summary,
   });
+}
+
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  static const String _apiBaseUrl =
+      'http://allytic-labs-prod.eba-pukad2pd.us-east-1.elasticbeanstalk.com';
+
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  int _step = 1;
+  bool _loading = false;
+  bool _showPassword = false;
+  String? _emailError;
+  String? _passwordError;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email);
+  }
+
+  Map<String, dynamic>? _tryDecodeJson(String body) {
+    try {
+      final parsed = jsonDecode(body);
+      if (parsed is Map<String, dynamic>) return parsed;
+    } catch (_) {}
+    return null;
+  }
+
+  void _submitEmail() {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      setState(() {
+        _emailError = 'Email is required';
+      });
+      return;
+    }
+    if (!_isValidEmail(email)) {
+      setState(() {
+        _emailError = 'Please enter a valid email address';
+      });
+      return;
+    }
+    setState(() {
+      _emailError = null;
+      _step = 2;
+    });
+  }
+
+  Future<void> _submitPassword() async {
+    final password = _passwordController.text;
+    final email = _emailController.text.trim();
+
+    if (password.trim().isEmpty) {
+      setState(() => _passwordError = 'Password is required');
+      return;
+    }
+    if (password.length < 8) {
+      setState(() => _passwordError = 'Password must be at least 8 characters');
+      return;
+    }
+
+    setState(() {
+      _passwordError = null;
+      _loading = true;
+    });
+
+    HttpClient? client;
+    try {
+      final uri = Uri.parse('$_apiBaseUrl/api/v1/auth/login');
+      client = HttpClient()..connectionTimeout = const Duration(seconds: 20);
+      final request = await client.postUrl(uri);
+      request.headers.set(HttpHeaders.contentTypeHeader, 'application/json');
+      request.add(
+        utf8.encode(
+          jsonEncode({
+            'username': email,
+            'password': password,
+          }),
+        ),
+      );
+
+      final response = await request.close();
+      final body = await utf8.decodeStream(response);
+      final data = _tryDecodeJson(body);
+      final contentType = response.headers.contentType?.mimeType ?? '';
+
+      if (!contentType.contains('application/json') || data == null) {
+        if (!mounted) return;
+        setState(() => _passwordError = 'Server returned invalid response. Please try again.');
+        return;
+      }
+
+      final ok = response.statusCode >= 200 && response.statusCode < 300;
+      final status = data['status']?.toString().toLowerCase();
+      if (ok && status == 'success') {
+        final prefs = await SharedPreferences.getInstance();
+
+        if (data['accessToken'] != null) {
+          await prefs.setString('accessToken', data['accessToken'].toString());
+        }
+        if (data['refreshToken'] != null) {
+          await prefs.setString('refreshToken', data['refreshToken'].toString());
+        }
+        if (data['userId'] != null) {
+          await prefs.setString('userId', data['userId'].toString());
+        }
+
+        final userEmail = (data['email'] ?? email).toString();
+        final username = (data['username'] ?? email).toString();
+        await prefs.setString('userEmail', userEmail);
+        await prefs.setString('username', username);
+
+        await prefs.setString(
+          'user',
+          jsonEncode({
+            'userId': data['userId'],
+            'email': userEmail,
+            'username': username,
+            'roles': data['roles'] ?? <dynamic>[],
+          }),
+        );
+
+        final returnTo = prefs.getString('returnTo') ?? '/';
+        await prefs.remove('returnTo');
+
+        if (!mounted) return;
+        Navigator.pushNamedAndRemoveUntil(context, returnTo, (route) => false);
+      } else {
+        final message = data['message']?.toString() ??
+            data['error']?.toString() ??
+            'Invalid email or password';
+        if (!mounted) return;
+        setState(() => _passwordError = message);
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _passwordError = 'Unable to connect to server. Please check your internet connection.';
+      });
+    } finally {
+      client?.close(force: true);
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  void _forgotPassword() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Password Reset'),
+        content: const Text(
+          'Password reset feature will be available soon. Please contact support for immediate assistance.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _googleLogin() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Google OAuth redirect is not configured in this Flutter app yet.')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Allytic Labs',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: const Color(0xFF111827),
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 460),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Text(
+                          'Sign In',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Color(0xFF111827),
+                            fontSize: 38,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        if (_step == 1) ...[
+                          _AuthInputField(
+                            label: 'Email',
+                            controller: _emailController,
+                            enabled: !_loading,
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (_) => null,
+                          ),
+                          if (_emailError != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Text(_emailError!, style: const TextStyle(color: Color(0xFFDC2626), fontSize: 12)),
+                            ),
+                          const SizedBox(height: 14),
+                          SizedBox(
+                            height: 50,
+                            child: FilledButton(
+                              onPressed: _loading ? null : _submitEmail,
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFF3B82F6),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                              child: const Text('Next'),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          TextButton(
+                            onPressed: _forgotPassword,
+                            child: const Text('Trouble Signing In?'),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: const [
+                              Expanded(child: Divider(color: Color(0xFFD1D5DB))),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                child: Text('Or', style: TextStyle(color: Color(0xFF6B7280))),
+                              ),
+                              Expanded(child: Divider(color: Color(0xFFD1D5DB))),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          SizedBox(
+                            height: 50,
+                            child: OutlinedButton(
+                              onPressed: _loading ? null : _googleLogin,
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(0xFF1F2937),
+                                side: const BorderSide(color: Color(0xFFD1D5DB)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                              child: const Text('Continue with Google'),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            height: 50,
+                            child: OutlinedButton(
+                              onPressed: _loading ? null : () => Navigator.pushNamed(context, '/signup'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(0xFF1F2937),
+                                backgroundColor: const Color(0xFFF3F4F6),
+                                side: const BorderSide(color: Color(0xFFE5E7EB)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                              child: const Text('Create Account'),
+                            ),
+                          ),
+                        ] else ...[
+                          TextButton.icon(
+                            onPressed: _loading
+                                ? null
+                                : () {
+                                    setState(() {
+                                      _step = 1;
+                                      _passwordController.clear();
+                                      _passwordError = null;
+                                    });
+                                  },
+                            icon: const Icon(Icons.arrow_back, size: 18),
+                            label: const Text('Back'),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Signing in as: ${_emailController.text.trim()}',
+                            style: const TextStyle(color: Color(0xFF4B5563)),
+                          ),
+                          const SizedBox(height: 12),
+                          _AuthInputField(
+                            label: 'Password',
+                            controller: _passwordController,
+                            enabled: !_loading,
+                            obscureText: !_showPassword,
+                            validator: (_) => null,
+                            suffix: IconButton(
+                              onPressed: _loading ? null : () => setState(() => _showPassword = !_showPassword),
+                              icon: Icon(_showPassword ? Icons.visibility_off : Icons.visibility),
+                            ),
+                          ),
+                          if (_passwordError != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Text(_passwordError!, style: const TextStyle(color: Color(0xFFDC2626), fontSize: 12)),
+                            ),
+                          const SizedBox(height: 14),
+                          SizedBox(
+                            height: 50,
+                            child: FilledButton(
+                              onPressed: _loading ? null : _submitPassword,
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFF3B82F6),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                              child: _loading
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                    )
+                                  : const Text('Sign In'),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          TextButton(
+                            onPressed: _loading ? null : _forgotPassword,
+                            child: const Text('Forgot Password?'),
+                          ),
+                        ],
+                        const SizedBox(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text('Allytic Labs © 2026', style: TextStyle(color: Color(0xFF6B7280), fontSize: 12)),
+                            TextButton(
+                              onPressed: () => Navigator.pushNamed(context, '/privacy'),
+                              child: const Text('Privacy & Legal'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pushNamed(context, '/contact'),
+                              child: const Text('Contact'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class SignUpPage extends StatefulWidget {
