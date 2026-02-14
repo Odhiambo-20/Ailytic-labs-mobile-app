@@ -29,10 +29,11 @@ class AilyticLabsApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const HomePage(),
-        '/robots': (context) => const PlaceholderPage(title: 'Robots'),
+        '/robots': (context) => const RobotsPage(),
         '/drones': (context) => const DronesPage(),
         '/solarpanels': (context) => const PlaceholderPage(title: 'Solar Panels'),
         '/products': (context) => const PlaceholderPage(title: 'Products'),
+        '/robots/catalog': (context) => const PlaceholderPage(title: 'Robots Catalog'),
         '/solutions': (context) => const PlaceholderPage(title: 'Solutions'),
         '/research': (context) => const PlaceholderPage(title: 'Research'),
         '/about': (context) => const PlaceholderPage(title: 'About'),
@@ -2802,6 +2803,743 @@ class _AssetVideoPlayerState extends State<_AssetVideoPlayer> {
       ],
     );
   }
+}
+
+class RobotsPage extends StatefulWidget {
+  const RobotsPage({super.key});
+
+  @override
+  State<RobotsPage> createState() => _RobotsPageState();
+}
+
+class _RobotsPageState extends State<RobotsPage> {
+  List<RobotItem> robots = [];
+  bool loading = true;
+  String? error;
+  String selectedType = 'all';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRobots();
+  }
+
+  Future<void> _fetchRobots() async {
+    setState(() {
+      loading = true;
+      error = null;
+    });
+
+    try {
+      await Future.delayed(const Duration(seconds: 1));
+      robots = const [
+        RobotItem(
+          id: 'r1',
+          name: 'SafeTest 3000',
+          type: 'Food Testing',
+          description:
+              'Revolutionary food safety testing robot with 99.9% accuracy for contaminants and compliance.',
+          image:
+              'https://images.pexels.com/photos/2085832/pexels-photo-2085832.jpeg?auto=compress&cs=tinysrgb&w=800',
+          capabilities: ['Food Safety', 'AI Detection', 'Compliance'],
+          price: '\$78,000',
+          rating: 4.9,
+          reviews: 184,
+        ),
+        RobotItem(
+          id: 'r2',
+          name: 'AgroBot Pro X1',
+          type: 'Agricultural',
+          description:
+              'Autonomous farming robot with precision planting, monitoring, and smart harvesting.',
+          image:
+              'https://images.pexels.com/photos/2085831/pexels-photo-2085831.jpeg?auto=compress&cs=tinysrgb&w=800',
+          capabilities: ['Crop Mapping', 'Precision Planting', 'Autonomous'],
+          price: '\$45,000',
+          rating: 4.8,
+          reviews: 122,
+        ),
+        RobotItem(
+          id: 'r3',
+          name: 'IndustrialArm MAX',
+          type: 'Industrial',
+          description:
+              'High-precision industrial robotic arm for manufacturing and heavy-duty operations.',
+          image:
+              'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=800',
+          capabilities: ['24/7 Ops', 'Precision Assembly', 'Heavy Duty'],
+          price: '\$125,000',
+          rating: 4.9,
+          reviews: 97,
+        ),
+        RobotItem(
+          id: 'r4',
+          name: 'CuraAssist M2',
+          type: 'Medical',
+          description:
+              'Clinical assistant robot supporting diagnostics and patient workflow optimization.',
+          image:
+              'https://images.pexels.com/photos/8460157/pexels-photo-8460157.jpeg?auto=compress&cs=tinysrgb&w=800',
+          capabilities: ['Patient Routing', 'Monitoring', 'Data Sync'],
+          price: '\$96,000',
+          rating: 4.7,
+          reviews: 76,
+        ),
+        RobotItem(
+          id: 'r5',
+          name: 'LogistiBot R9',
+          type: 'Logistics',
+          description:
+              'Warehouse robot with autonomous path planning for sorting and material movement.',
+          image:
+              'https://images.pexels.com/photos/8566473/pexels-photo-8566473.jpeg?auto=compress&cs=tinysrgb&w=800',
+          capabilities: ['Path Planning', 'Load Transfer', 'Fleet Sync'],
+          price: '\$69,000',
+          rating: 4.8,
+          reviews: 141,
+        ),
+      ];
+
+      setState(() => loading = false);
+    } catch (_) {
+      setState(() {
+        loading = false;
+        error = 'Failed to load robots. Please try again later.';
+      });
+    }
+  }
+
+  void _handleOrderNow(RobotItem robot) {
+    Navigator.pushNamed(context, '/order', arguments: {
+      'id': robot.id,
+      'name': robot.name,
+      'type': robot.type,
+      'description': robot.description,
+      'image': robot.image,
+      'price': robot.price,
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.sizeOf(context).width < 1000;
+    final filteredRobots = selectedType == 'all'
+        ? robots
+        : robots.where((r) => r.type == selectedType).toList();
+    final robotTypes = ['all', ...{...robots.map((r) => r.type)}];
+
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildHero(isMobile),
+            _buildFeaturedVideos(isMobile),
+            _buildCatalog(isMobile, robotTypes, filteredRobots),
+            _buildReadySection(isMobile),
+            _buildIndustrialSection(isMobile),
+            HomeFooter(
+              onRoute: (route, {arguments}) {
+                Navigator.pushNamed(context, route, arguments: arguments);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHero(bool isMobile) {
+    return SizedBox(
+      height: isMobile ? 700 : 860,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          const _AssetVideoPlayer(
+            assetPath: 'assets/Allytic.mp4',
+            fallbackAssetPath: 'assets/drone.jpg',
+            showControls: false,
+            fit: BoxFit.cover,
+          ),
+          Container(color: Colors.black.withOpacity(0.45)),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Future Robotics',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: isMobile ? 52 : 84,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Discover the next generation of intelligent robots designed to transform industries.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 22, color: Color(0xFFBFDBFE)),
+                  ),
+                  const SizedBox(height: 20),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      GradientButton(
+                        text: 'Explore Robots',
+                        a: const Color(0xFF2563EB),
+                        b: const Color(0xFF7C3AED),
+                        onPressed: () => Navigator.pushNamed(context, '/robots/catalog'),
+                      ),
+                      OutlinedButton(
+                        onPressed: () => Navigator.pushNamed(context, '/demo', arguments: 'robot'),
+                        child: const Text('Watch Demo'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeaturedVideos(bool isMobile) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 34),
+      color: const Color(0xFF0B1224),
+      child: isMobile
+          ? Column(
+              children: [
+                _featuredCard(
+                  title: 'Precision Food Safety Testing',
+                  desc:
+                      'AI-powered robot that ensures food quality and safety with 99.9% accuracy.',
+                  videoAsset: 'assets/Food Testing Robot.webm',
+                  fallbackAsset: 'assets/drone.jpg',
+                  buttonA: const Color(0xFF2563EB),
+                  buttonB: const Color(0xFF7C3AED),
+                  orderItem: const RobotItem(
+                    id: 'food-testing-1',
+                    name: 'SafeTest 3000',
+                    type: 'Food Testing',
+                    description: 'Food safety testing robot with 99.9% accuracy.',
+                    image:
+                        'https://images.pexels.com/photos/2085832/pexels-photo-2085832.jpeg?auto=compress&cs=tinysrgb&w=800',
+                    capabilities: ['Food Safety', 'AI Detection'],
+                    price: '\$78,000',
+                    rating: 4.9,
+                    reviews: 184,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _featuredCard(
+                  title: 'Smart Agricultural Innovation',
+                  desc:
+                      'Autonomous farming robot that boosts yields while reducing environmental impact.',
+                  videoAsset: 'assets/Agricultural Robot.webm',
+                  fallbackAsset: 'assets/agricultural drone.jpg',
+                  buttonA: const Color(0xFF16A34A),
+                  buttonB: const Color(0xFF0D9488),
+                  orderItem: const RobotItem(
+                    id: 'agricultural-1',
+                    name: 'AgroBot Pro X1',
+                    type: 'Agricultural',
+                    description: 'Autonomous farming robot with precision planting and harvest.',
+                    image:
+                        'https://images.pexels.com/photos/2085831/pexels-photo-2085831.jpeg?auto=compress&cs=tinysrgb&w=800',
+                    capabilities: ['Crop Mapping', 'Autonomous'],
+                    price: '\$45,000',
+                    rating: 4.8,
+                    reviews: 122,
+                  ),
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                Expanded(
+                  child: _featuredCard(
+                    title: 'Precision Food Safety Testing',
+                    desc:
+                        'AI-powered robot that ensures food quality and safety with 99.9% accuracy.',
+                    videoAsset: 'assets/Food Testing Robot.webm',
+                    fallbackAsset: 'assets/drone.jpg',
+                    buttonA: const Color(0xFF2563EB),
+                    buttonB: const Color(0xFF7C3AED),
+                    orderItem: const RobotItem(
+                      id: 'food-testing-1',
+                      name: 'SafeTest 3000',
+                      type: 'Food Testing',
+                      description: 'Food safety testing robot with 99.9% accuracy.',
+                      image:
+                          'https://images.pexels.com/photos/2085832/pexels-photo-2085832.jpeg?auto=compress&cs=tinysrgb&w=800',
+                      capabilities: ['Food Safety', 'AI Detection'],
+                      price: '\$78,000',
+                      rating: 4.9,
+                      reviews: 184,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _featuredCard(
+                    title: 'Smart Agricultural Innovation',
+                    desc:
+                        'Autonomous farming robot that boosts yields while reducing environmental impact.',
+                    videoAsset: 'assets/Agricultural Robot.webm',
+                    fallbackAsset: 'assets/agricultural drone.jpg',
+                    buttonA: const Color(0xFF16A34A),
+                    buttonB: const Color(0xFF0D9488),
+                    orderItem: const RobotItem(
+                      id: 'agricultural-1',
+                      name: 'AgroBot Pro X1',
+                      type: 'Agricultural',
+                      description: 'Autonomous farming robot with precision planting and harvest.',
+                      image:
+                          'https://images.pexels.com/photos/2085831/pexels-photo-2085831.jpeg?auto=compress&cs=tinysrgb&w=800',
+                      capabilities: ['Crop Mapping', 'Autonomous'],
+                      price: '\$45,000',
+                      rating: 4.8,
+                      reviews: 122,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  Widget _featuredCard({
+    required String title,
+    required String desc,
+    required String videoAsset,
+    required String fallbackAsset,
+    required Color buttonA,
+    required Color buttonB,
+    required RobotItem orderItem,
+  }) {
+    return Container(
+      height: 500,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          _AssetVideoPlayer(
+            assetPath: videoAsset,
+            fallbackAssetPath: fallbackAsset,
+            showControls: false,
+            fit: BoxFit.cover,
+          ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [Colors.black.withOpacity(0.86), Colors.black.withOpacity(0.25)],
+              ),
+            ),
+          ),
+          Positioned(
+            left: 18,
+            right: 18,
+            bottom: 18,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 8),
+                Text(desc, style: const TextStyle(color: Color(0xFFBFDBFE), fontSize: 18)),
+                const SizedBox(height: 12),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: [buttonA, buttonB]),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: TextButton.icon(
+                    onPressed: () => _handleOrderNow(orderItem),
+                    iconAlignment: IconAlignment.end,
+                    icon: const Icon(Icons.chevron_right),
+                    label: const Text('Order Now', style: TextStyle(fontWeight: FontWeight.w700)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCatalog(bool isMobile, List<String> robotTypes, List<RobotItem> filteredRobots) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: [Color(0xCC0F172A), Color(0xCC1E3A8A)],
+        ),
+      ),
+      child: Column(
+        children: [
+          Text(
+            'Our Robot Collection',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: isMobile ? 38 : 56, fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Explore our complete lineup of intelligent robots powered by advanced AI.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Color(0xFFBFDBFE), fontSize: 20),
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
+            children: robotTypes
+                .map(
+                  (type) => ChoiceChip(
+                    label: Text(type == 'all' ? 'All Robots' : type),
+                    selected: selectedType == type,
+                    onSelected: (_) => setState(() => selectedType = type),
+                  ),
+                )
+                .toList(),
+          ),
+          const SizedBox(height: 20),
+          if (loading)
+            Column(
+              children: const [
+                CircularProgressIndicator(),
+                SizedBox(height: 10),
+                Text('Loading robots from database...'),
+              ],
+            )
+          else if (error != null)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.red.withOpacity(0.5)),
+              ),
+              child: Column(
+                children: [
+                  Text(error!, style: const TextStyle(color: Colors.redAccent)),
+                  const SizedBox(height: 8),
+                  FilledButton(onPressed: _fetchRobots, child: const Text('Retry Loading')),
+                ],
+              ),
+            )
+          else if (filteredRobots.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0x661E293B),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0x66475569)),
+              ),
+              child: Text(
+                selectedType == 'all'
+                    ? 'No robots available at the moment.'
+                    : 'No $selectedType robots found.',
+              ),
+            )
+          else
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: filteredRobots.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: isMobile ? 1 : 3,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: isMobile ? 1.25 : 0.8,
+              ),
+              itemBuilder: (context, i) {
+                final r = filteredRobots[i];
+                return _robotCatalogCard(r);
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _robotCatalogCard(RobotItem robot) {
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0x553B82F6)),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xCC1E293B), Color(0xCC1E3A8A)],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.network(
+                  robot.image,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const _AssetBackground(assetPath: 'assets/drone.jpg'),
+                ),
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xE62196F3),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(robot.type, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(robot.name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 6),
+                Text(robot.description, maxLines: 3, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFFBFDBFE))),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: robot.capabilities
+                      .take(3)
+                      .map((c) => Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0x553B82F6),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(c, style: const TextStyle(fontSize: 11)),
+                          ))
+                      .toList(),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Text(robot.price, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: Color(0xFF60A5FA))),
+                    const Spacer(),
+                    Text('★ ${robot.rating.toStringAsFixed(1)} (${robot.reviews})'),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(colors: [Color(0xFF2563EB), Color(0xFF7C3AED)]),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: TextButton.icon(
+                      onPressed: () => _handleOrderNow(robot),
+                      iconAlignment: IconAlignment.end,
+                      icon: const Icon(Icons.chevron_right),
+                      label: const Text('Order Now', style: TextStyle(fontWeight: FontWeight.w700)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReadySection(bool isMobile) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 36),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: [Color(0x4D1E3A8A), Color(0x4D7C3AED)],
+        ),
+      ),
+      child: isMobile
+          ? Column(
+              children: [
+                _readyText(),
+                const SizedBox(height: 14),
+                _readyVideo(),
+              ],
+            )
+          : Row(
+              children: [
+                Expanded(child: _readyText()),
+                const SizedBox(width: 16),
+                Expanded(child: _readyVideo()),
+              ],
+            ),
+    );
+  }
+
+  Widget _readyText() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Ready to Welcome the Future?', style: TextStyle(fontSize: 48, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 10),
+        const Text(
+          'Control cutting-edge robotics from your smartphone with real-time monitoring and intelligent automation.',
+          style: TextStyle(color: Color(0xFFBFDBFE), fontSize: 20),
+        ),
+        const SizedBox(height: 14),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            GradientButton(
+              text: 'Get Started Today',
+              a: const Color(0xFF2563EB),
+              b: const Color(0xFF7C3AED),
+              onPressed: () => Navigator.pushNamed(context, '/contact'),
+            ),
+            OutlinedButton(
+              onPressed: () => Navigator.pushNamed(context, '/contact'),
+              child: const Text('Contact Sales'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _readyVideo() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: const SizedBox(
+        height: 500,
+        child: _AssetVideoPlayer(
+          assetPath: 'assets/Robotic Dog.mp4',
+          fallbackAssetPath: 'assets/drone.jpg',
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIndustrialSection(bool isMobile) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      color: const Color(0xFF0B1224),
+      child: Container(
+        height: isMobile ? 520 : 620,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            const _AssetVideoPlayer(
+              assetPath: 'assets/Industrial Robot.webm',
+              fallbackAssetPath: 'assets/drone.jpg',
+              showControls: false,
+              fit: BoxFit.cover,
+            ),
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [Colors.black.withOpacity(0.9), Colors.black.withOpacity(0.35)],
+                ),
+              ),
+            ),
+            Positioned(
+              left: 20,
+              right: 20,
+              bottom: 20,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Industrial Excellence in Motion',
+                    style: TextStyle(fontSize: isMobile ? 38 : 56, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Advanced industrial robotics for 24/7 productivity, precision assembly, and maximum efficiency.',
+                    style: TextStyle(color: Color(0xFFBFDBFE), fontSize: 20),
+                  ),
+                  const SizedBox(height: 12),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(colors: [Color(0xFFEA580C), Color(0xFFDC2626)]),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: TextButton.icon(
+                      onPressed: () => _handleOrderNow(const RobotItem(
+                        id: 'industrial-1',
+                        name: 'IndustrialArm MAX',
+                        type: 'Industrial',
+                        description: 'High-precision industrial robotic arm for heavy-duty operations.',
+                        image:
+                            'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=800',
+                        capabilities: ['24/7 Ops', 'Precision Assembly'],
+                        price: '\$125,000',
+                        rating: 4.9,
+                        reviews: 97,
+                      )),
+                      iconAlignment: IconAlignment.end,
+                      icon: const Icon(Icons.chevron_right),
+                      label: const Text('Order Now', style: TextStyle(fontWeight: FontWeight.w700)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class RobotItem {
+  final String id;
+  final String name;
+  final String type;
+  final String description;
+  final String image;
+  final List<String> capabilities;
+  final String price;
+  final double rating;
+  final int reviews;
+
+  const RobotItem({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.description,
+    required this.image,
+    required this.capabilities,
+    required this.price,
+    required this.rating,
+    required this.reviews,
+  });
 }
 
 class PlaceholderPage extends StatelessWidget {
