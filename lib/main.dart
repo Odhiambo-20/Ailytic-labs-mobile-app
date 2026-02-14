@@ -29,7 +29,7 @@ class AilyticLabsApp extends StatelessWidget {
       routes: {
         '/': (context) => const HomePage(),
         '/robots': (context) => const PlaceholderPage(title: 'Robots'),
-        '/drones': (context) => const PlaceholderPage(title: 'Drones'),
+        '/drones': (context) => const DronesPage(),
         '/solarpanels': (context) => const PlaceholderPage(title: 'Solar Panels'),
         '/products': (context) => const PlaceholderPage(title: 'Products'),
         '/solutions': (context) => const PlaceholderPage(title: 'Solutions'),
@@ -41,6 +41,9 @@ class AilyticLabsApp extends StatelessWidget {
         '/support': (context) => const PlaceholderPage(title: 'Support'),
         '/partners': (context) => const PlaceholderPage(title: 'Partners'),
         '/demo': (context) => const DemoPlaceholderPage(),
+        '/order': (context) => const PlaceholderPage(title: 'Order'),
+        '/latest-models': (context) => const PlaceholderPage(title: 'Latest Models'),
+       
       },
     );
   }
@@ -942,6 +945,583 @@ class _AssetBackground extends StatelessWidget {
       },
     );
   }
+}
+
+class DronesPage extends StatefulWidget {
+  const DronesPage({super.key});
+
+  @override
+  State<DronesPage> createState() => _DronesPageState();
+}
+
+class _DronesPageState extends State<DronesPage> {
+  int currentGalleryIndex = 0;
+  int? hoveredDroneId;
+  bool loading = true;
+  String? error;
+  List<DroneData> droneApplications = [];
+
+  final List<DroneHeroItem> galleryItems = const [
+    DroneHeroItem(
+      image: 'assets/delivery drone.jpg',
+      title: 'Professional Delivery Drones',
+      subtitle: 'Revolutionary cargo solutions for modern logistics',
+      highlight: 'Transport',
+    ),
+    DroneHeroItem(
+      image: 'assets/drone.jpg',
+      title: 'Advanced Surveillance Systems',
+      subtitle: 'Cutting-edge aerial security and monitoring',
+      highlight: 'Security',
+    ),
+    DroneHeroItem(
+      image: 'assets/agricultural drone.jpg',
+      title: 'Precision Agriculture Drones',
+      subtitle: 'Smart farming with AI-powered crop analysis',
+      highlight: 'Agriculture',
+    ),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDrones();
+  }
+
+  Future<void> _fetchDrones() async {
+    setState(() {
+      loading = true;
+      error = null;
+    });
+
+    try {
+      await Future.delayed(const Duration(seconds: 1));
+      droneApplications = const [
+        DroneData(
+          id: 1,
+          name: 'SkyGuard Pro',
+          application: 'Surveillance',
+          type: 'Security',
+          description:
+              'Advanced surveillance drone with 4K thermal imaging and 8-hour flight time',
+          image:
+              'https://images.pexels.com/photos/442587/pexels-photo-442587.jpeg?auto=compress&cs=tinysrgb&w=1200',
+          features: '4K Camera | Thermal Imaging | 8hr Battery',
+          price: '\$15,000',
+          rating: 4.8,
+          reviews: 124,
+        ),
+        DroneData(
+          id: 2,
+          name: 'CargoMax 500',
+          application: 'Transport',
+          type: 'Delivery',
+          description:
+              'Heavy-lift cargo drone with 50kg payload capacity and autonomous navigation',
+          image:
+              'https://images.pexels.com/photos/8566473/pexels-photo-8566473.jpeg?auto=compress&cs=tinysrgb&w=1200',
+          features: '50kg Payload | GPS Navigation | Weather Resistant',
+          price: '\$25,000',
+          rating: 4.9,
+          reviews: 89,
+        ),
+        DroneData(
+          id: 3,
+          name: 'AgriScan X1',
+          application: 'Agriculture',
+          type: 'Farming',
+          description:
+              'Precision agriculture drone with multispectral imaging for crop health monitoring',
+          image:
+              'https://images.pexels.com/photos/1034650/pexels-photo-1034650.jpeg?auto=compress&cs=tinysrgb&w=1200',
+          features: 'Multispectral | AI Analysis | Crop Mapping',
+          price: '\$18,000',
+          rating: 4.7,
+          reviews: 156,
+        ),
+        DroneData(
+          id: 4,
+          name: 'MapMaster Pro',
+          application: 'Mapping',
+          type: 'Survey',
+          description:
+              'High-precision mapping drone with LiDAR and photogrammetry capabilities',
+          image:
+              'https://images.pexels.com/photos/2246476/pexels-photo-2246476.jpeg?auto=compress&cs=tinysrgb&w=1200',
+          features: 'LiDAR | 3D Mapping | RTK GPS',
+          price: '\$22,000',
+          rating: 4.8,
+          reviews: 73,
+        ),
+        DroneData(
+          id: 5,
+          name: 'CineAir 8K',
+          application: 'Media',
+          type: 'Cinematography',
+          description:
+              'Professional cinema drone with 8K video recording and gimbal stabilization',
+          image:
+              'https://images.pexels.com/photos/3945683/pexels-photo-3945683.jpeg?auto=compress&cs=tinysrgb&w=1200',
+          features: '8K Video | 3-Axis Gimbal | RAW Recording',
+          price: '\$12,000',
+          rating: 4.9,
+          reviews: 201,
+        ),
+        DroneData(
+          id: 6,
+          name: 'PartyFlyer LED',
+          application: 'Entertainment',
+          type: 'Events',
+          description:
+              'Light show drone for events with synchronized LED displays and formations',
+          image:
+              'https://images.pexels.com/photos/1730877/pexels-photo-1730877.jpeg?auto=compress&cs=tinysrgb&w=1200',
+          features: 'LED Display | Swarm Control | Show Programming',
+          price: '\$8,000',
+          rating: 4.6,
+          reviews: 94,
+        ),
+      ];
+      setState(() => loading = false);
+    } catch (_) {
+      setState(() {
+        loading = false;
+        error = 'Failed to load drones. Please try again later.';
+      });
+    }
+  }
+
+  void _nextGalleryItem() {
+    setState(() {
+      currentGalleryIndex = (currentGalleryIndex + 1) % galleryItems.length;
+    });
+  }
+
+  void _prevGalleryItem() {
+    setState(() {
+      currentGalleryIndex =
+          (currentGalleryIndex - 1 + galleryItems.length) % galleryItems.length;
+    });
+  }
+
+  void _handleOrderNow(DroneData drone) {
+    Navigator.pushNamed(context, '/order', arguments: drone);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.sizeOf(context).width < 900;
+    final currentHero = galleryItems[currentGalleryIndex];
+
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
+              height: 74,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: const BoxDecoration(
+                color: Color(0xFF0B1734),
+                border: Border(bottom: BorderSide(color: Color(0xFF1E2A44))),
+              ),
+              child: Row(
+                children: [
+                  TextButton(
+                    onPressed: () =>
+                        Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false),
+                    child: const Text('Ailytic Labs'),
+                  ),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () => Navigator.pushNamed(context, '/'),
+                    child: const Text('Home'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pushNamed(context, '/robots'),
+                    child: const Text('Robots'),
+                  ),
+                  TextButton(
+                    onPressed: () {},
+                    child: const Text('Drones'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pushNamed(context, '/solarpanels'),
+                    child: const Text('Solar'),
+                  ),
+                  const SizedBox(width: 8),
+                  GradientButton(
+                    text: 'Contact Us',
+                    a: const Color(0xFF2563EB),
+                    b: const Color(0xFF0891B2),
+                    compact: true,
+                    onPressed: () => Navigator.pushNamed(context, '/contact'),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: isMobile ? 620 : 760,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  _AssetBackground(assetPath: currentHero.image),
+                  Container(color: Colors.black.withOpacity(0.5)),
+                  Positioned(
+                    left: 20,
+                    right: 20,
+                    bottom: 90,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(currentHero.highlight),
+                        ),
+                        const SizedBox(height: 14),
+                        Text(
+                          currentHero.title,
+                          style: TextStyle(
+                            fontSize: isMobile ? 34 : 64,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          currentHero.subtitle,
+                          style: TextStyle(
+                            fontSize: isMobile ? 18 : 28,
+                            color: Colors.white70,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: [
+                            GradientButton(
+                              text: 'Order Now',
+                              a: const Color(0xFF2563EB),
+                              b: const Color(0xFF0891B2),
+                              onPressed: () => _handleOrderNow(
+                                DroneData(
+                                  id: 1000 + currentGalleryIndex,
+                                  name: currentHero.title,
+                                  application: currentHero.highlight,
+                                  type: currentHero.highlight,
+                                  description: currentHero.subtitle,
+                                  image: '',
+                                  features: 'Enterprise drone',
+                                  price: '\$25,000',
+                                  rating: 4.8,
+                                  reviews: 0,
+                                ),
+                              ),
+                            ),
+                            OutlinedButton(
+                              onPressed: () {},
+                              child: const Text('Learn More'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    left: 16,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: CircleIconButton(
+                        icon: Icons.chevron_left,
+                        onTap: _prevGalleryItem,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 16,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: CircleIconButton(
+                        icon: Icons.chevron_right,
+                        onTap: _nextGalleryItem,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 24,
+                    left: 0,
+                    right: 0,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(
+                        galleryItems.length,
+                        (i) => GestureDetector(
+                          onTap: () => setState(() => currentGalleryIndex = i),
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            width: currentGalleryIndex == i ? 30 : 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: currentGalleryIndex == i
+                                  ? const Color(0xFF22D3EE)
+                                  : Colors.white38,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF111827), Color(0xFF0B1224)],
+                ),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'Drone Solutions for Every Industry',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: isMobile ? 34 : 56,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Discover our professional drones for surveillance, transport, agriculture, mapping, media, and entertainment',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white70, fontSize: 18),
+                  ),
+                  const SizedBox(height: 24),
+                  if (loading) ...[
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: 12),
+                    const Text('Loading drones from database...'),
+                  ] else if (error != null) ...[
+                    Text(error!, style: const TextStyle(color: Colors.redAccent)),
+                    const SizedBox(height: 12),
+                    FilledButton(onPressed: _fetchDrones, child: const Text('Retry Loading')),
+                  ] else if (droneApplications.isEmpty) ...[
+                    const Text('No drones available at the moment.'),
+                  ] else
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: droneApplications.length,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: isMobile ? 1 : 3,
+                        mainAxisSpacing: 14,
+                        crossAxisSpacing: 14,
+                        childAspectRatio: isMobile ? 1.25 : 0.85,
+                      ),
+                      itemBuilder: (context, index) {
+                        final d = droneApplications[index];
+                        return MouseRegion(
+                          onEnter: (_) => setState(() => hoveredDroneId = index),
+                          onExit: (_) => setState(() => hoveredDroneId = null),
+                          child: _DroneCard(
+                            drone: d,
+                            hover: hoveredDroneId == index,
+                            onOrder: () => _handleOrderNow(d),
+                          ),
+                        );
+                      },
+                    ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: isMobile ? 520 : 700,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  const _AssetBackground(assetPath: 'assets/drone.jpg'),
+                  Container(color: Colors.black.withOpacity(0.62)),
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: const Text('Next Generation Technology'),
+                          ),
+                          const SizedBox(height: 14),
+                          Text(
+                            'Latest Innovations in Drone Technology',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: isMobile ? 36 : 64,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          const Text(
+                            'Experience AI-powered autonomy, longer range, and industrial-grade reliability.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 20, color: Colors.white70),
+                          ),
+                          const SizedBox(height: 20),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 10,
+                            children: [
+                              GradientButton(
+                                text: 'Explore Latest Models',
+                                a: const Color(0xFF2563EB),
+                                b: const Color(0xFF0891B2),
+                                onPressed: () =>
+                                    Navigator.pushNamed(context, '/latest-models'),
+                              ),
+                              OutlinedButton(
+                                onPressed: () =>
+                                    Navigator.pushNamed(context, '/demo', arguments: 'drone'),
+                                child: const Text('Watch Technology Demo'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            HomeFooter(
+              onRoute: (route, {arguments}) {
+                Navigator.pushNamed(context, route, arguments: arguments);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DroneCard extends StatelessWidget {
+  final DroneData drone;
+  final bool hover;
+  final VoidCallback onOrder;
+
+  const _DroneCard({
+    required this.drone,
+    required this.hover,
+    required this.onOrder,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: hover ? const Color(0xFF3B82F6) : const Color(0xFF374151)),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.network(
+            drone.image,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => const _AssetBackground(assetPath: 'assets/drone.jpg'),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [Colors.black.withOpacity(0.88), Colors.transparent],
+              ),
+            ),
+          ),
+          Positioned(
+            left: 14,
+            right: 14,
+            bottom: 14,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(drone.application, style: const TextStyle(color: Color(0xFF93C5FD))),
+                const SizedBox(height: 6),
+                Text(drone.name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 6),
+                Text(drone.description, maxLines: 3, overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 8),
+                Text(drone.features, style: const TextStyle(color: Color(0xFF67E8F9))),
+                const SizedBox(height: 8),
+                Text('${drone.price}  •  ★ ${drone.rating} (${drone.reviews})',
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 10),
+                FilledButton(onPressed: onOrder, child: const Text('Order Now')),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class DroneHeroItem {
+  final String image;
+  final String title;
+  final String subtitle;
+  final String highlight;
+
+  const DroneHeroItem({
+    required this.image,
+    required this.title,
+    required this.subtitle,
+    required this.highlight,
+  });
+}
+
+class DroneData {
+  final int id;
+  final String name;
+  final String application;
+  final String type;
+  final String description;
+  final String image;
+  final String features;
+  final String price;
+  final double rating;
+  final int reviews;
+
+  const DroneData({
+    required this.id,
+    required this.name,
+    required this.application,
+    required this.type,
+    required this.description,
+    required this.image,
+    required this.features,
+    required this.price,
+    required this.rating,
+    required this.reviews,
+  });
 }
 
 class PlaceholderPage extends StatelessWidget {
