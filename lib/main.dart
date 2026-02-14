@@ -41,7 +41,7 @@ class AilyticLabsApp extends StatelessWidget {
         '/support': (context) => const PlaceholderPage(title: 'Support'),
         '/partners': (context) => const PlaceholderPage(title: 'Partners'),
         '/demo': (context) => const DemoPlaceholderPage(),
-        '/order': (context) => const PlaceholderPage(title: 'Order'),
+        '/order': (context) => const OrderPage(),
         '/latest-models': (context) => const PlaceholderPage(title: 'Latest Models'),
        
       },
@@ -1521,6 +1521,548 @@ class DroneData {
     required this.price,
     required this.rating,
     required this.reviews,
+  });
+}
+
+class OrderPage extends StatefulWidget {
+  const OrderPage({super.key});
+
+  @override
+  State<OrderPage> createState() => _OrderPageState();
+}
+
+class _OrderPageState extends State<OrderPage> {
+  OrderProduct? _product;
+  bool _orderConfirmed = false;
+  bool _showMap = false;
+  bool _isProcessing = false;
+  String? _paymentError;
+  String? _paymentId;
+
+  final _formKey = GlobalKey<FormState>();
+
+  final Map<String, double> _shippingCosts = const {
+    'standard': 0,
+    'express': 49.99,
+    'overnight': 99.99,
+  };
+
+  final Map<String, String> _shippingLabels = const {
+    'standard': 'Standard Shipping',
+    'express': 'Express Shipping',
+    'overnight': 'Overnight Shipping',
+  };
+
+  final Map<String, String> _paymentLabels = const {
+    'stripe': 'Credit/Debit Card',
+    'mpesa': 'M-Pesa',
+  };
+
+  String fullName = '';
+  String email = '';
+  String phone = '';
+  String address = '';
+  String city = '';
+  String state = '';
+  String zipCode = '';
+  String cardNumber = '';
+  String cardName = '';
+  String expiryDate = '';
+  String cvv = '';
+  String shippingMethod = 'standard';
+  String paymentMethod = 'mpesa';
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _product ??= _extractProduct(ModalRoute.of(context)?.settings.arguments);
+  }
+
+  OrderProduct? _extractProduct(Object? args) {
+    if (args == null) return null;
+
+    if (args is DroneData) {
+      return OrderProduct(
+        id: args.id.toString(),
+        name: args.name,
+        type: args.type,
+        description: args.description,
+        image: args.image,
+        price: args.price,
+      );
+    }
+
+    if (args is Map) {
+      final map = args.map((k, v) => MapEntry(k.toString(), v));
+      return OrderProduct(
+        id: (map['id'] ?? '0').toString(),
+        name: (map['name'] ?? 'Product').toString(),
+        type: (map['type'] ?? 'Drone').toString(),
+        description: (map['description'] ?? 'No description').toString(),
+        image: (map['image'] ?? '').toString(),
+        price: (map['price'] ?? '\$0').toString(),
+      );
+    }
+
+    return null;
+  }
+
+  String _formatCardNumber(String value) {
+    final digits = value.replaceAll(RegExp(r'\s+'), '').replaceAll(RegExp(r'\D'), '');
+    return digits.replaceAllMapped(RegExp(r'.{1,4}'), (m) => '${m.group(0)} ').trim();
+  }
+
+  String _formatExpiry(String value) {
+    final digits = value.replaceAll(RegExp(r'\D'), '');
+    if (digits.length <= 2) return digits;
+    return '${digits.substring(0, 2)}/${digits.substring(2, digits.length.clamp(2, 4))}';
+  }
+
+  double _priceToDouble(String raw) {
+    final cleaned = raw.replaceAll(RegExp(r'[^0-9.]'), '');
+    return double.tryParse(cleaned) ?? 0;
+  }
+
+  Map<String, String> _calculateTotals() {
+    final subtotal = _priceToDouble(_product?.price ?? '\$0');
+    final shipping = _shippingCosts[shippingMethod] ?? 0;
+    final tax = subtotal * 0.08;
+    final total = subtotal + shipping + tax;
+
+    return {
+      'subtotal': subtotal.toStringAsFixed(2),
+      'shipping': shipping.toStringAsFixed(2),
+      'tax': tax.toStringAsFixed(2),
+      'total': total.toStringAsFixed(2),
+    };
+  }
+
+  Future<void> _handleSubmit() async {
+    final form = _formKey.currentState;
+    if (form == null || !form.validate()) return;
+
+    form.save();
+
+    setState(() {
+      _isProcessing = true;
+      _paymentError = null;
+    });
+
+    try {
+      await Future.delayed(const Duration(seconds: 2));
+      setState(() {
+        _isProcessing = false;
+        _orderConfirmed = true;
+        _paymentId = 'PAY-${DateTime.now().millisecondsSinceEpoch}';
+      });
+    } catch (_) {
+      setState(() {
+        _isProcessing = false;
+        _paymentError = 'Payment processing failed. Please try again.';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final product = _product;
+    final totals = _calculateTotals();
+    final width = MediaQuery.sizeOf(context).width;
+    final isMobile = width < 960;
+
+    if (product == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Order')),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 12),
+              const Text('Loading order details...'),
+              const SizedBox(height: 18),
+              FilledButton(
+                onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/drones', (_) => false),
+                child: const Text('Back To Drones'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_orderConfirmed) {
+      return Scaffold(
+        body: Center(
+          child: Container(
+            width: 520,
+            margin: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0F172A),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFF334155)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.check_circle, color: Colors.green, size: 70),
+                const SizedBox(height: 12),
+                const Text('Order Confirmed!', style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 8),
+                Text('Your ${product.name} has been ordered successfully.'),
+                const SizedBox(height: 12),
+                if (_paymentId != null)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E293B),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: SelectableText('Payment ID: $_paymentId'),
+                  ),
+                const SizedBox(height: 16),
+                const Text('Check your email for confirmation details.'),
+                const SizedBox(height: 18),
+                FilledButton(
+                  onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/drones', (_) => false),
+                  child: const Text('Back to Drones'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final mediaPane = _showMap
+        ? _DeliveryMapView(
+            address: '$address, $city, $state $zipCode',
+            onBack: () => setState(() => _showMap = false),
+          )
+        : _OrderProductImage(imageUrl: product.image, title: product.name);
+
+    final rightPanel = SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(product.name, style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            Text(product.type, style: const TextStyle(color: Colors.white70)),
+            const SizedBox(height: 8),
+            Text(product.description, style: const TextStyle(color: Colors.white70)),
+            const SizedBox(height: 10),
+            Text(product.price, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 16),
+            if (_paymentError != null)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.red.withOpacity(0.6)),
+                ),
+                child: Text(_paymentError!, style: const TextStyle(color: Colors.redAccent)),
+              ),
+            const Divider(height: 28),
+            const Text('Payment Method', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 8),
+            ..._paymentLabels.keys.map(
+              (m) => RadioListTile<String>(
+                value: m,
+                groupValue: paymentMethod,
+                onChanged: (v) => setState(() => paymentMethod = v ?? 'mpesa'),
+                title: Text(_paymentLabels[m]!),
+              ),
+            ),
+            const Divider(height: 28),
+            const Text('Shipping Method', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 8),
+            ..._shippingLabels.keys.map(
+              (s) => RadioListTile<String>(
+                value: s,
+                groupValue: shippingMethod,
+                onChanged: (v) => setState(() => shippingMethod = v ?? 'standard'),
+                title: Text(_shippingLabels[s]!),
+                subtitle: Text(s == 'standard' ? '5-7 business days' : s == 'express' ? '2-3 business days' : 'Next business day'),
+                secondary: Text(
+                  (_shippingCosts[s] ?? 0) == 0 ? 'FREE' : '\$${_shippingCosts[s]!.toStringAsFixed(2)}',
+                ),
+              ),
+            ),
+            const Divider(height: 28),
+            const Text('Shipping Information', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 12),
+            _InputField(label: 'Full Name', onSaved: (v) => fullName = v ?? '', validator: _required),
+            _InputField(label: 'Email', keyboardType: TextInputType.emailAddress, onSaved: (v) => email = v ?? '', validator: _required),
+            _InputField(label: 'Phone', keyboardType: TextInputType.phone, onSaved: (v) => phone = v ?? '', validator: _required),
+            _InputField(label: 'Address', onSaved: (v) => address = v ?? '', validator: _required),
+            Row(
+              children: [
+                Expanded(child: _InputField(label: 'City', onSaved: (v) => city = v ?? '', validator: _required)),
+                const SizedBox(width: 8),
+                Expanded(child: _InputField(label: 'State', onSaved: (v) => state = v ?? '', validator: _required)),
+                const SizedBox(width: 8),
+                Expanded(child: _InputField(label: 'ZIP Code', onSaved: (v) => zipCode = v ?? '', validator: _required)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: () {
+                _formKey.currentState?.save();
+                if (address.isNotEmpty && city.isNotEmpty && state.isNotEmpty && zipCode.isNotEmpty) {
+                  setState(() => _showMap = true);
+                }
+              },
+              icon: const Icon(Icons.map),
+              label: const Text('Show Delivery Location on Map'),
+            ),
+            const Divider(height: 28),
+            if (paymentMethod == 'stripe') ...[
+              const Text('Card Information', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 12),
+              _InputField(
+                label: 'Card Number',
+                keyboardType: TextInputType.number,
+                onSaved: (v) => cardNumber = _formatCardNumber(v ?? ''),
+                validator: _required,
+              ),
+              _InputField(label: 'Cardholder Name', onSaved: (v) => cardName = v ?? '', validator: _required),
+              Row(
+                children: [
+                  Expanded(
+                    child: _InputField(
+                      label: 'Expiry (MM/YY)',
+                      onSaved: (v) => expiryDate = _formatExpiry(v ?? ''),
+                      validator: _required,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _InputField(
+                      label: 'CVV',
+                      keyboardType: TextInputType.number,
+                      onSaved: (v) => cvv = v ?? '',
+                      validator: _required,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              const Text('Your payment information is encrypted and secure.', style: TextStyle(color: Colors.white70)),
+              const Divider(height: 28),
+            ],
+            if (paymentMethod == 'mpesa') ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.green.withOpacity(0.5)),
+                ),
+                child: const Text(
+                  'M-Pesa Payment: You will receive an STK push prompt on your phone after submitting.',
+                ),
+              ),
+              const Divider(height: 28),
+            ],
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFF111827),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF374151)),
+              ),
+              child: Column(
+                children: [
+                  _summaryRow('Subtotal', '\$${totals['subtotal']}'),
+                  _summaryRow('Shipping', '\$${totals['shipping']}'),
+                  _summaryRow('Tax (8%)', '\$${totals['tax']}'),
+                  const Divider(),
+                  _summaryRow('Total', '\$${totals['total']}', bold: true),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: _isProcessing ? null : _handleSubmit,
+                icon: _isProcessing
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Icon(paymentMethod == 'mpesa' ? Icons.smartphone : Icons.lock),
+                label: Text(_isProcessing
+                    ? 'Processing Payment...'
+                    : paymentMethod == 'mpesa'
+                        ? 'Send M-Pesa Prompt - \$${totals['total']}'
+                        : 'Complete Order - \$${totals['total']}'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Order'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.maybePop(context),
+        ),
+      ),
+      body: isMobile
+          ? Column(
+              children: [
+                SizedBox(height: 300, child: mediaPane),
+                Expanded(child: rightPanel),
+              ],
+            )
+          : Row(
+              children: [
+                Expanded(flex: 3, child: mediaPane),
+                Expanded(flex: 2, child: rightPanel),
+              ],
+            ),
+    );
+  }
+
+  String? _required(String? value) {
+    if (value == null || value.trim().isEmpty) return 'Required';
+    return null;
+  }
+
+  Widget _summaryRow(String label, String value, {bool bold = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Text(label, style: TextStyle(fontWeight: bold ? FontWeight.w700 : FontWeight.w400)),
+          const Spacer(),
+          Text(value, style: TextStyle(fontWeight: bold ? FontWeight.w700 : FontWeight.w400)),
+        ],
+      ),
+    );
+  }
+}
+
+class _InputField extends StatelessWidget {
+  final String label;
+  final TextInputType? keyboardType;
+  final FormFieldValidator<String>? validator;
+  final FormFieldSetter<String>? onSaved;
+
+  const _InputField({
+    required this.label,
+    this.keyboardType,
+    this.validator,
+    this.onSaved,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: TextFormField(
+        keyboardType: keyboardType,
+        validator: validator,
+        onSaved: onSaved,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          filled: true,
+          fillColor: const Color(0xFF111827),
+        ),
+      ),
+    );
+  }
+}
+
+class _DeliveryMapView extends StatelessWidget {
+  final String address;
+  final VoidCallback onBack;
+
+  const _DeliveryMapView({required this.address, required this.onBack});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        const _AssetBackground(assetPath: 'assets/drone.jpg'),
+        Container(color: Colors.black.withOpacity(0.45)),
+        Positioned(
+          top: 16,
+          left: 16,
+          right: 16,
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.7),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.white24),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.location_pin, color: Colors.redAccent),
+                const SizedBox(width: 8),
+                Expanded(child: Text(address)),
+                TextButton(onPressed: onBack, child: const Text('View Product')),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _OrderProductImage extends StatelessWidget {
+  final String imageUrl;
+  final String title;
+
+  const _OrderProductImage({required this.imageUrl, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    final isHttp = imageUrl.startsWith('http://') || imageUrl.startsWith('https://');
+    return isHttp
+        ? Image.network(
+            imageUrl,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => const _AssetBackground(assetPath: 'assets/drone.jpg'),
+          )
+        : _AssetBackground(assetPath: imageUrl.isEmpty ? 'assets/drone.jpg' : imageUrl);
+  }
+}
+
+class OrderProduct {
+  final String id;
+  final String name;
+  final String type;
+  final String description;
+  final String image;
+  final String price;
+
+  const OrderProduct({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.description,
+    required this.image,
+    required this.price,
   });
 }
 
