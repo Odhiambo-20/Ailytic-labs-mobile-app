@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:video_player/video_player.dart';
 
 void main() {
   runApp(const AilyticLabsApp());
@@ -40,7 +41,7 @@ class AilyticLabsApp extends StatelessWidget {
         '/contact': (context) => const PlaceholderPage(title: 'Contact'),
         '/support': (context) => const PlaceholderPage(title: 'Support'),
         '/partners': (context) => const PlaceholderPage(title: 'Partners'),
-        '/demo': (context) => const DemoPlaceholderPage(),
+        '/demo': (context) => const DemoPage(),
         '/order': (context) => const OrderPage(),
         '/latest-models': (context) => const LatestModelsPage(),
        
@@ -921,6 +922,17 @@ class _AssetBackground extends StatelessWidget {
     return map.keys.toSet();
   }
 
+  bool _isImageAsset(String path) {
+    final p = path.toLowerCase();
+    return p.endsWith('.png') ||
+        p.endsWith('.jpg') ||
+        p.endsWith('.jpeg') ||
+        p.endsWith('.webp') ||
+        p.endsWith('.avif') ||
+        p.endsWith('.gif') ||
+        p.endsWith('.bmp');
+  }
+
   @override
   Widget build(BuildContext context) {
     _assetKeysFuture ??= _loadAssetKeys();
@@ -929,7 +941,9 @@ class _AssetBackground extends StatelessWidget {
       future: _assetKeysFuture,
       builder: (context, snapshot) {
         final hasAsset = snapshot.data?.contains(assetPath) ?? false;
-        if (hasAsset) {
+        final isImage = _isImageAsset(assetPath);
+
+        if (hasAsset && isImage) {
           return Image.asset(assetPath, fit: BoxFit.cover);
         }
 
@@ -941,6 +955,15 @@ class _AssetBackground extends StatelessWidget {
               colors: [Color(0xFF1F2937), Color(0xFF0B1224)],
             ),
           ),
+          child: hasAsset && !isImage
+              ? const Center(
+                  child: Icon(
+                    Icons.play_circle_outline,
+                    size: 72,
+                    color: Colors.white70,
+                  ),
+                )
+              : null,
         );
       },
     );
@@ -2398,6 +2421,387 @@ class LatestModelItem {
     required this.gradientA,
     required this.gradientB,
   });
+}
+
+class DemoPage extends StatefulWidget {
+  const DemoPage({super.key});
+
+  @override
+  State<DemoPage> createState() => _DemoPageState();
+}
+
+class _DemoPageState extends State<DemoPage> {
+  bool isMenuOpen = false;
+  String activeDemo = 'robot';
+
+  static const Map<String, DemoContent> demoContent = {
+    'robot': DemoContent(
+      title: 'Advanced Robotics Demo',
+      subtitle: 'Experience precision automation with AI-powered intelligence',
+      heroVideo: 'assets/robot.mp4',
+      demoVideo: 'assets/advanced robotics.mp4',
+      heroFallback: 'assets/drone.jpg',
+    ),
+    'drone': DemoContent(
+      title: 'Professional Drone Demo',
+      subtitle: 'Aerial innovation with autonomous capabilities',
+      heroVideo: 'assets/robot1.mp4',
+      demoVideo: 'assets/drone.mp4',
+      heroFallback: 'assets/drone.jpg',
+    ),
+    'solar': DemoContent(
+      title: 'Solar Energy Systems Demo',
+      subtitle: 'Sustainable power solutions for a cleaner future',
+      heroVideo: 'assets/solar panels.mp4',
+      demoVideo: 'assets/solar energy.mp4',
+      heroFallback: 'assets/solar panels.jpg',
+    ),
+  };
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final arg = ModalRoute.of(context)?.settings.arguments;
+    if (arg is String && demoContent.containsKey(arg)) {
+      activeDemo = arg;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.sizeOf(context).width < 900;
+    final currentDemo = demoContent[activeDemo] ?? demoContent['robot']!;
+
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildTopNav(isMobile),
+            _buildHero(currentDemo, isMobile),
+            _buildLiveDemo(currentDemo, isMobile),
+            _buildFooter(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopNav(bool isMobile) {
+    return Container(
+      height: 72,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: const BoxDecoration(
+        color: Color(0xFF0B1734),
+        border: Border(bottom: BorderSide(color: Color(0xFF1E2A44))),
+      ),
+      child: Row(
+        children: [
+          InkWell(
+            onTap: () => Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false),
+            child: Row(
+              children: const [
+                Icon(Icons.bolt, color: Color(0xFF60A5FA)),
+                SizedBox(width: 8),
+                Text('Ailytic Labs', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+              ],
+            ),
+          ),
+          const Spacer(),
+          if (!isMobile) ...[
+            _TopLink(text: 'Home', onTap: () => Navigator.pushNamed(context, '/')),
+            _TopLink(text: 'Robots', onTap: () => Navigator.pushNamed(context, '/robots')),
+            _TopLink(text: 'Drones', onTap: () => Navigator.pushNamed(context, '/drones')),
+            _TopLink(text: 'Solar', onTap: () => Navigator.pushNamed(context, '/solarpanels')),
+            const SizedBox(width: 8),
+            GradientButton(
+              text: 'Contact Us',
+              a: const Color(0xFF3B82F6),
+              b: const Color(0xFF8B5CF6),
+              compact: true,
+              onPressed: () => Navigator.pushNamed(context, '/contact'),
+            ),
+          ] else
+            IconButton(
+              onPressed: () => setState(() => isMenuOpen = !isMenuOpen),
+              icon: Icon(isMenuOpen ? Icons.close : Icons.menu),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHero(DemoContent currentDemo, bool isMobile) {
+    return SizedBox(
+      height: isMobile ? 600 : 800,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          _AssetVideoPlayer(
+            assetPath: currentDemo.heroVideo,
+            fallbackAssetPath: currentDemo.heroFallback,
+            showControls: false,
+            fit: BoxFit.cover,
+          ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withOpacity(0.72),
+                  Colors.black.withOpacity(0.52),
+                  const Color(0xFF111827),
+                ],
+              ),
+            ),
+          ),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.maybePop(context),
+                    icon: const Icon(Icons.arrow_back),
+                    label: const Text('Back'),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    currentDemo.title,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: isMobile ? 44 : 84,
+                      fontWeight: FontWeight.w800,
+                      height: 1.05,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    currentDemo.subtitle,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: isMobile ? 20 : 30, color: Colors.white70),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLiveDemo(DemoContent currentDemo, bool isMobile) {
+    return Container(
+      width: double.infinity,
+      color: const Color(0xFF111827),
+      padding: const EdgeInsets.symmetric(vertical: 48),
+      child: Column(
+        children: [
+          Text(
+            'Live Demonstration',
+            style: TextStyle(fontSize: isMobile ? 40 : 58, fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 8),
+          const Text('Watch our technology in action', style: TextStyle(color: Colors.white70, fontSize: 20)),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            height: isMobile ? 280 : 520,
+            child: _AssetVideoPlayer(
+              assetPath: currentDemo.demoVideo,
+              fallbackAssetPath: currentDemo.heroFallback,
+              showControls: true,
+              fit: BoxFit.cover,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooter() {
+    Widget link(String text, String route) => TextButton(
+          onPressed: () => Navigator.pushNamed(context, route),
+          child: Text(text),
+        );
+
+    return Container(
+      width: double.infinity,
+      color: const Color(0xFF030712),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+      child: Column(
+        children: [
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            spacing: 36,
+            runSpacing: 18,
+            children: [
+              const SizedBox(
+                width: 240,
+                child: Text('Pioneering the future of robotics, drones, and renewable energy.'),
+              ),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('Solutions', style: TextStyle(fontWeight: FontWeight.w700)),
+                link('Robotics', '/robots'),
+                link('Drones', '/drones'),
+                link('Solar', '/solarpanels'),
+              ]),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('Company', style: TextStyle(fontWeight: FontWeight.w700)),
+                link('About', '/about'),
+                link('Careers', '/careers'),
+                link('News', '/news'),
+              ]),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('Connect', style: TextStyle(fontWeight: FontWeight.w700)),
+                link('Contact', '/contact'),
+                link('Support', '/support'),
+                link('Partners', '/partners'),
+              ]),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(color: Color(0xFF1F2937)),
+          const SizedBox(height: 8),
+          const Text('© 2026 Ailytic Labs. All rights reserved.', style: TextStyle(color: Colors.white54)),
+        ],
+      ),
+    );
+  }
+}
+
+class DemoContent {
+  final String title;
+  final String subtitle;
+  final String heroVideo;
+  final String demoVideo;
+  final String heroFallback;
+
+  const DemoContent({
+    required this.title,
+    required this.subtitle,
+    required this.heroVideo,
+    required this.demoVideo,
+    required this.heroFallback,
+  });
+}
+
+class _AssetVideoPlayer extends StatefulWidget {
+  final String assetPath;
+  final String fallbackAssetPath;
+  final bool showControls;
+  final BoxFit fit;
+
+  const _AssetVideoPlayer({
+    required this.assetPath,
+    required this.fallbackAssetPath,
+    this.showControls = false,
+    this.fit = BoxFit.cover,
+  });
+
+  @override
+  State<_AssetVideoPlayer> createState() => _AssetVideoPlayerState();
+}
+
+class _AssetVideoPlayerState extends State<_AssetVideoPlayer> {
+  VideoPlayerController? _controller;
+  bool _ready = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _init();
+  }
+
+  @override
+  void didUpdateWidget(covariant _AssetVideoPlayer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.assetPath != widget.assetPath) {
+      _disposeController();
+      _ready = false;
+      _init();
+    }
+  }
+
+  Future<void> _init() async {
+    try {
+      final c = VideoPlayerController.asset(widget.assetPath);
+      await c.initialize();
+      await c.setLooping(true);
+      await c.setVolume(0);
+      await c.play();
+      if (!mounted) {
+        c.dispose();
+        return;
+      }
+      setState(() {
+        _controller = c;
+        _ready = true;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _ready = false;
+      });
+    }
+  }
+
+  void _disposeController() {
+    _controller?.dispose();
+    _controller = null;
+  }
+
+  @override
+  void dispose() {
+    _disposeController();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_ready || _controller == null) {
+      return _AssetBackground(assetPath: widget.fallbackAssetPath);
+    }
+
+    final video = FittedBox(
+      fit: widget.fit,
+      clipBehavior: Clip.hardEdge,
+      child: SizedBox(
+        width: _controller!.value.size.width,
+        height: _controller!.value.size.height,
+        child: VideoPlayer(_controller!),
+      ),
+    );
+
+    if (!widget.showControls) return video;
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        video,
+        Positioned(
+          bottom: 12,
+          right: 12,
+          child: IconButton(
+            onPressed: () {
+              if (_controller!.value.isPlaying) {
+                _controller!.pause();
+              } else {
+                _controller!.play();
+              }
+              setState(() {});
+            },
+            icon: Icon(
+              _controller!.value.isPlaying ? Icons.pause_circle : Icons.play_circle,
+              size: 34,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class PlaceholderPage extends StatelessWidget {
