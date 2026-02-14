@@ -31,7 +31,7 @@ class AilyticLabsApp extends StatelessWidget {
         '/': (context) => const HomePage(),
         '/robots': (context) => const RobotsPage(),
         '/drones': (context) => const DronesPage(),
-        '/solarpanels': (context) => const PlaceholderPage(title: 'Solar Panels'),
+        '/solarpanels': (context) => const SolarPanelsPage(),
         '/products': (context) => const PlaceholderPage(title: 'Products'),
         '/robots/catalog': (context) => const RobotsCatalogPage(),
         '/solutions': (context) => const PlaceholderPage(title: 'Solutions'),
@@ -4515,6 +4515,1020 @@ class _SocialIcon extends StatelessWidget {
       child: Icon(icon, size: 18),
     );
   }
+}
+
+class SolarPanelsPage extends StatefulWidget {
+  const SolarPanelsPage({super.key});
+
+  @override
+  State<SolarPanelsPage> createState() => _SolarPanelsPageState();
+}
+
+class _SolarPanelsPageState extends State<SolarPanelsPage> {
+  int currentSlide = 0;
+  List<SolarPanelItem> solarPanels = [];
+  bool loading = true;
+  String? error;
+  String selectedType = 'all';
+  Timer? _testimonialTimer;
+
+  final List<TestimonialItem> testimonials = const [
+    TestimonialItem(
+      name: 'Sarah Johnson',
+      company: 'Green Home Solutions',
+      rating: 5,
+      text:
+          'Allytic Labs solar panels exceeded expectations. Efficiency is outstanding and monitoring is incredibly useful.',
+      location: 'Nairobi, Kenya',
+    ),
+    TestimonialItem(
+      name: 'Michael Chen',
+      company: 'EcoTech Industries',
+      rating: 5,
+      text:
+          'Our commercial installation reduced energy costs by 40%. Excellent ROI and reliable performance.',
+      location: 'Lagos, Nigeria',
+    ),
+    TestimonialItem(
+      name: 'Dr. Amara Okafor',
+      company: 'Solar Research Institute',
+      rating: 5,
+      text:
+          'The technology and innovation behind these panels is impressive. Perfect for our research facility.',
+      location: 'Accra, Ghana',
+    ),
+  ];
+
+  final List<SolarBenefitItem> benefits = const [
+    SolarBenefitItem(
+      icon: Icons.eco,
+      title: 'Environmental Impact',
+      description: 'Reduce carbon footprint by up to 80% with renewable energy.',
+      colorA: Color(0x3322C55E),
+      colorB: Color(0x334ADE80),
+    ),
+    SolarBenefitItem(
+      icon: Icons.trending_up,
+      title: 'Cost Savings',
+      description: 'Save 60-90% on electricity bills with efficient systems.',
+      colorA: Color(0x333B82F6),
+      colorB: Color(0x3360A5FA),
+    ),
+    SolarBenefitItem(
+      icon: Icons.shield,
+      title: 'Reliability',
+      description: '25-30 year warranty with long-term durability.',
+      colorA: Color(0x338B5CF6),
+      colorB: Color(0x33A78BFA),
+    ),
+    SolarBenefitItem(
+      icon: Icons.bar_chart,
+      title: 'Smart Monitoring',
+      description: 'Real-time tracking and predictive maintenance.',
+      colorA: Color(0x33F97316),
+      colorB: Color(0x33FB923C),
+    ),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchSolarPanels();
+    _testimonialTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (!mounted || testimonials.isEmpty) return;
+      setState(() => currentSlide = (currentSlide + 1) % testimonials.length);
+    });
+  }
+
+  @override
+  void dispose() {
+    _testimonialTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _fetchSolarPanels() async {
+    setState(() {
+      loading = true;
+      error = null;
+    });
+
+    try {
+      await Future.delayed(const Duration(milliseconds: 900));
+      if (!mounted) return;
+      setState(() {
+        solarPanels = const [
+          SolarPanelItem(
+            id: 's1',
+            name: 'SunCore Residential 450',
+            type: 'Residential',
+            description: 'High-efficiency monocrystalline panel ideal for modern homes.',
+            image: 'assets/roof-top solar.jpg',
+            capacity: '450W',
+            efficiency: '22.1%',
+            price: '\$420',
+            rating: 4.8,
+            reviews: 182,
+          ),
+          SolarPanelItem(
+            id: 's2',
+            name: 'AgriPower Farm 650',
+            type: 'Agricultural',
+            description: 'Durable panel array optimized for solar farm deployments.',
+            image: 'assets/solar panels.jpg',
+            capacity: '650W',
+            efficiency: '21.5%',
+            price: '\$560',
+            rating: 4.9,
+            reviews: 96,
+          ),
+          SolarPanelItem(
+            id: 's3',
+            name: 'Enterprise Pro 720',
+            type: 'Commercial',
+            description: 'Enterprise-grade panel with advanced performance analytics.',
+            image: 'assets/cutting-edge solar panels.jpg',
+            capacity: '720W',
+            efficiency: '23.0%',
+            price: '\$690',
+            rating: 4.9,
+            reviews: 124,
+          ),
+          SolarPanelItem(
+            id: 's4',
+            name: 'UrbanLite 380',
+            type: 'Residential',
+            description: 'Compact rooftop panel designed for urban installations.',
+            image: 'assets/solar panels 1.jpg',
+            capacity: '380W',
+            efficiency: '20.4%',
+            price: '\$350',
+            rating: 4.6,
+            reviews: 208,
+          ),
+          SolarPanelItem(
+            id: 's5',
+            name: 'GridMax Industrial 800',
+            type: 'Industrial',
+            description: 'Heavy-duty panel with exceptional output for utility systems.',
+            image: 'assets/cutting-edge solar panels.jpg',
+            capacity: '800W',
+            efficiency: '23.4%',
+            price: '\$780',
+            rating: 4.8,
+            reviews: 73,
+          ),
+        ];
+        loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        loading = false;
+        error = 'Failed to load solar panels. Please try again later.';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.sizeOf(context).width < 1000;
+    final filteredPanels = selectedType == 'all'
+        ? solarPanels
+        : solarPanels.where((p) => p.type == selectedType).toList();
+    final panelTypes = ['all', ...{...solarPanels.map((p) => p.type)}];
+
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            _hero(isMobile),
+            _rooftopSection(isMobile),
+            _solarFarmSection(isMobile),
+            _commercialSection(isMobile),
+            _catalogSection(isMobile, panelTypes, filteredPanels),
+            _innovationSection(isMobile),
+            _benefitsSection(isMobile),
+            _testimonialsSection(isMobile),
+            _ctaSection(isMobile),
+            _footer(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _hero(bool isMobile) {
+    return SizedBox(
+      height: isMobile ? 700 : 900,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          const _AssetVideoPlayer(
+            assetPath: 'assets/solar.mp4',
+            fallbackAssetPath: 'assets/solar panels.jpg',
+            fit: BoxFit.cover,
+          ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [Colors.black.withOpacity(0.6), Colors.black.withOpacity(0.25)],
+              ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 760),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Advanced Solar Panel Technology',
+                      style: TextStyle(fontSize: isMobile ? 48 : 78, fontWeight: FontWeight.w800),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Transform energy consumption with intelligent solar solutions that deliver exceptional performance.',
+                      style: TextStyle(fontSize: 24, color: Color(0xFFF1F5F9)),
+                    ),
+                    const SizedBox(height: 20),
+                    GradientButton(
+                      text: 'Get Started Today',
+                      a: const Color(0xFFEA580C),
+                      b: const Color(0xFFEAB308),
+                      onPressed: () => Navigator.pushNamed(context, '/contact'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _rooftopSection(bool isMobile) {
+    final image = ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: const SizedBox(
+        height: 500,
+        child: _AssetBackground(assetPath: 'assets/roof-top solar.jpg'),
+      ),
+    );
+
+    final text = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Transform Your Home with Rooftop Solar', style: TextStyle(fontSize: 52, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
+        const SizedBox(height: 12),
+        const Text(
+          'Bring clean, renewable energy directly to your home with premium monocrystalline panels.',
+          style: TextStyle(fontSize: 22, color: Color(0xFF334155)),
+        ),
+        const SizedBox(height: 14),
+        ...const [
+          'Up to 22% energy efficiency',
+          'Weather-resistant installation',
+          'Smart monitoring system included',
+          '25-year performance warranty',
+        ].map((s) => Padding(
+              padding: EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Color(0xFF16A34A)),
+                  SizedBox(width: 8),
+                  Expanded(child: Text(s, style: TextStyle(color: Color(0xFF334155), fontSize: 18))),
+                ],
+              ),
+            )),
+        const SizedBox(height: 10),
+        GradientButton(
+          text: 'Learn More',
+          a: Color(0xFFEA580C),
+          b: Color(0xFFEAB308),
+          onPressed: () {},
+        ),
+      ],
+    );
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 36),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(colors: [Color(0xFFF8FAFC), Color(0xFFEFF6FF)]),
+      ),
+      child: isMobile
+          ? Column(children: [image, const SizedBox(height: 14), text])
+          : Row(children: [Expanded(child: image), const SizedBox(width: 16), Expanded(child: text)]),
+    );
+  }
+
+  Widget _solarFarmSection(bool isMobile) {
+    final text = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Large-Scale Solar Farm Solutions', style: TextStyle(fontSize: 52, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
+        const SizedBox(height: 12),
+        const Text(
+          'Harness the power of thousands of panels for utility-scale projects.',
+          style: TextStyle(fontSize: 22, color: Color(0xFF334155)),
+        ),
+        const SizedBox(height: 14),
+        _infoBox('Energy Generation', 'Generate 500+ kWh annually per installed system', const [Color(0xFFFFF7ED), Color(0xFFFFEDD5)]),
+        _infoBox('Cost Efficiency', 'Reduce operational costs by up to 70%', const [Color(0xFFEFF6FF), Color(0xFFDBEAFE)]),
+        _infoBox('Environmental Impact', 'Offset 2000+ tons of carbon annually', const [Color(0xFFF0FDF4), Color(0xFFDCFCE7)]),
+        const SizedBox(height: 10),
+        OutlinedButton(onPressed: () {}, child: const Text('Explore Farm Solutions')),
+      ],
+    );
+
+    final image = ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: const SizedBox(height: 500, child: _AssetBackground(assetPath: 'assets/solar panels.jpg')),
+    );
+
+    return Container(
+      width: double.infinity,
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 36),
+      child: isMobile
+          ? Column(children: [text, const SizedBox(height: 14), image])
+          : Row(children: [Expanded(child: text), const SizedBox(width: 16), Expanded(child: image)]),
+    );
+  }
+
+  Widget _commercialSection(bool isMobile) {
+    final image = ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: const SizedBox(height: 500, child: _AssetBackground(assetPath: 'assets/cutting-edge solar panels.jpg')),
+    );
+
+    final text = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Enterprise-Grade Commercial Solar', style: TextStyle(fontSize: 52, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
+        const SizedBox(height: 12),
+        const Text(
+          'Designed for businesses demanding maximum performance and reliability.',
+          style: TextStyle(fontSize: 22, color: Color(0xFF334155)),
+        ),
+        const SizedBox(height: 12),
+        _featureRow(Icons.trending_up, '500+ kW Capacity', 'Scale to meet any business energy demands', const [Color(0xFFEA580C), Color(0xFFF59E0B)]),
+        _featureRow(Icons.workspace_premium, 'Industry Leading', 'Certified and trusted by enterprise customers', const [Color(0xFF3B82F6), Color(0xFF06B6D4)]),
+        _featureRow(Icons.bolt, '24/7 Monitoring', 'Real-time analytics and performance tracking', const [Color(0xFF22C55E), Color(0xFF10B981)]),
+        const SizedBox(height: 10),
+        GradientButton(
+          text: 'Request Commercial Quote',
+          a: const Color(0xFFEA580C),
+          b: const Color(0xFFEAB308),
+          onPressed: () => Navigator.pushNamed(context, '/contact'),
+        ),
+      ],
+    );
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 36),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(colors: [Color(0xFFF8FAFC), Color(0xFFFFF7ED)]),
+      ),
+      child: isMobile
+          ? Column(children: [image, const SizedBox(height: 14), text])
+          : Row(children: [Expanded(child: image), const SizedBox(width: 16), Expanded(child: text)]),
+    );
+  }
+
+  Widget _catalogSection(bool isMobile, List<String> panelTypes, List<SolarPanelItem> filteredPanels) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 36),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(colors: [Color(0xFFFFF7ED), Color(0xFFFEF9C3)]),
+      ),
+      child: Column(
+        children: [
+          Text('Our Solar Panel Collection', style: TextStyle(fontSize: isMobile ? 40 : 58, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A))),
+          const SizedBox(height: 10),
+          const Text(
+            'Explore our complete range for residential, commercial, and industrial applications.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Color(0xFF334155), fontSize: 20),
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
+            children: panelTypes
+                .map(
+                  (type) => ChoiceChip(
+                    label: Text(type == 'all' ? 'All Panels' : type),
+                    selected: selectedType == type,
+                    onSelected: (_) => setState(() => selectedType = type),
+                  ),
+                )
+                .toList(),
+          ),
+          const SizedBox(height: 16),
+          if (loading)
+            const Column(children: [CircularProgressIndicator(), SizedBox(height: 10), Text('Loading solar panels from database...')])
+          else if (error != null)
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF2F2),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFFCA5A5)),
+              ),
+              child: Column(
+                children: [
+                  Text(error!, style: const TextStyle(color: Color(0xFFDC2626))),
+                  const SizedBox(height: 8),
+                  FilledButton(onPressed: _fetchSolarPanels, child: const Text('Retry Loading')),
+                ],
+              ),
+            )
+          else if (filteredPanels.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFFCD34D)),
+              ),
+              child: Text(
+                selectedType == 'all' ? 'No solar panels available at the moment.' : 'No $selectedType panels found.',
+                style: const TextStyle(color: Color(0xFF334155)),
+              ),
+            )
+          else
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: filteredPanels.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: isMobile ? 1 : 3,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: isMobile ? 1.2 : 0.82,
+              ),
+              itemBuilder: (context, i) {
+                final panel = filteredPanels[i];
+                return _panelCard(panel);
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _panelCard(SolarPanelItem panel) {
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFFCD34D)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                _AssetBackground(assetPath: panel.image),
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xEAEA580C),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(panel.type),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: DefaultTextStyle(
+              style: const TextStyle(color: Color(0xFF0F172A)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(panel.name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 6),
+                  Text(panel.description, maxLines: 3, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF334155))),
+                  const SizedBox(height: 8),
+                  if (panel.capacity.isNotEmpty) _statRow('Capacity', panel.capacity),
+                  if (panel.efficiency.isNotEmpty) _statRow('Efficiency', panel.efficiency),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text(panel.price, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: Color(0xFFEA580C))),
+                      const Spacer(),
+                      Text('★ ${panel.rating.toStringAsFixed(1)} (${panel.reviews})'),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(colors: [Color(0xFFEA580C), Color(0xFFEAB308)]),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: TextButton.icon(
+                        onPressed: () => Navigator.pushNamed(context, '/contact'),
+                        iconAlignment: IconAlignment.end,
+                        icon: const Icon(Icons.arrow_forward),
+                        label: const Text('Get Quote', style: TextStyle(fontWeight: FontWeight.w700)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _innovationSection(bool isMobile) {
+    return SizedBox(
+      height: isMobile ? 800 : 900,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          const _AssetVideoPlayer(
+            assetPath: 'assets/solar.webm',
+            fallbackAssetPath: 'assets/solar panels.jpg',
+            fit: BoxFit.cover,
+          ),
+          Container(color: Colors.black.withOpacity(0.65)),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 900),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Cutting-Edge Solar Innovation',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: isMobile ? 48 : 70, fontWeight: FontWeight.w800),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Stay ahead with AI-powered optimization, predictive maintenance, and real-time energy management.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 24, color: Color(0xFFF1F5F9)),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Next-Generation Features', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800)),
+                          SizedBox(height: 10),
+                          _Bullet('AI-powered energy optimization'),
+                          _Bullet('Predictive maintenance alerts'),
+                          _Bullet('Mobile app control & monitoring'),
+                          _Bullet('Weather-adaptive performance'),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    GradientButton(
+                      text: 'Explore Technology',
+                      a: const Color(0xFFEA580C),
+                      b: const Color(0xFFEAB308),
+                      onPressed: () {},
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _benefitsSection(bool isMobile) {
+    return Container(
+      width: double.infinity,
+      color: const Color(0x08000000),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 36),
+      child: Column(
+        children: [
+          const Text('Why Choose Allytic Solar?', style: TextStyle(fontSize: 48, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
+          const SizedBox(height: 8),
+          const Text(
+            'Experience the advantages of our advanced solar technology and comprehensive service.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Color(0xFF334155), fontSize: 20),
+          ),
+          const SizedBox(height: 16),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: benefits.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: isMobile ? 1 : 4,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: isMobile ? 2.8 : 0.9,
+            ),
+            itemBuilder: (context, i) {
+              final b = benefits[i];
+              return Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: [b.colorA, b.colorB]),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.black12),
+                ),
+                child: DefaultTextStyle(
+                  style: const TextStyle(color: Color(0xFF0F172A)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(b.icon, size: 38),
+                      const SizedBox(height: 8),
+                      Text(b.title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+                      const SizedBox(height: 8),
+                      Text(b.description, style: const TextStyle(color: Color(0xFF334155))),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _testimonialsSection(bool isMobile) {
+    final t = testimonials[currentSlide];
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 36),
+      child: Column(
+        children: [
+          const Text('What Our Customers Say', style: TextStyle(fontSize: 48, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
+          const SizedBox(height: 8),
+          const Text(
+            'Real feedback from satisfied customers across Africa and beyond.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Color(0xFF334155), fontSize: 20),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [Color(0xFFFFF7ED), Color(0xFFFEF9C3)]),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFFCD34D)),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(t.rating, (_) => const Icon(Icons.star, color: Color(0xFFEAB308))),
+                ),
+                const SizedBox(height: 10),
+                Text('"${t.text}"', textAlign: TextAlign.center, style: const TextStyle(fontSize: 24, fontStyle: FontStyle.italic, color: Color(0xFF0F172A))),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: const Color(0xFFEA580C),
+                      child: Text(t.name.substring(0, 1), style: const TextStyle(color: Colors.white)),
+                    ),
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(t.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF0F172A))),
+                        Text(t.company, style: const TextStyle(color: Color(0xFF334155))),
+                        Text(t.location, style: const TextStyle(color: Color(0xFFEA580C))),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              testimonials.length,
+              (i) => GestureDetector(
+                onTap: () => setState(() => currentSlide = i),
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                    color: currentSlide == i ? const Color(0xFFEA580C) : const Color(0xFF94A3B8),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _ctaSection(bool isMobile) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 36),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(colors: [Color(0xFFF97316), Color(0xFFEAB308)]),
+      ),
+      child: Column(
+        children: [
+          const Text('Ready to Go Solar?', style: TextStyle(fontSize: 48, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 8),
+          const Text(
+            'Join thousands of customers who switched to clean renewable energy. Get a free consultation today.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 20, color: Colors.white),
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              FilledButton.icon(
+                onPressed: () => Navigator.pushNamed(context, '/contact'),
+                icon: const Icon(Icons.calendar_today),
+                label: const Text('Schedule Consultation'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: const Color(0xFFEA580C),
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: () {},
+                icon: const Icon(Icons.phone),
+                label: const Text('Call: +254-700-000-000'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  side: const BorderSide(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _footer() {
+    return Container(
+      width: double.infinity,
+      color: const Color(0xFF0F172A),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      child: Column(
+        children: [
+          Wrap(
+            spacing: 24,
+            runSpacing: 12,
+            alignment: WrapAlignment.spaceBetween,
+            children: const [
+              SizedBox(
+                width: 260,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.wb_sunny, color: Color(0xFFFACC15)),
+                        SizedBox(width: 8),
+                        Text('Allytic Labs', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                    Text('Leading provider of solar solutions across Africa and beyond.', style: TextStyle(color: Color(0xFF94A3B8))),
+                    SizedBox(height: 6),
+                    Row(children: [Icon(Icons.location_on, size: 16), SizedBox(width: 6), Text('Nairobi, Kenya')]),
+                  ],
+                ),
+              ),
+              _FooterMini(title: 'Quick Links', items: ['Products', 'Installation', 'Maintenance', 'Support']),
+              _FooterMini(title: 'Contact Info', items: ['+254-700-000-000', 'solar@allytic-labs.com']),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Divider(color: Color(0xFF334155)),
+          const SizedBox(height: 8),
+          const Text('© 2026 Allytic Labs. All rights reserved.'),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoBox(String title, String body, List<Color> colors) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: colors),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.black12),
+      ),
+      child: DefaultTextStyle(
+        style: const TextStyle(color: Color(0xFF0F172A)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 2),
+            Text(body, style: const TextStyle(color: Color(0xFF334155))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _featureRow(IconData icon, String title, String body, List<Color> colors) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(colors: colors),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: Colors.white),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF0F172A))),
+                Text(body, style: const TextStyle(color: Color(0xFF334155))),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _statRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          Text('$label:', style: const TextStyle(color: Color(0xFF64748B))),
+          const Spacer(),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
+  }
+}
+
+class _Bullet extends StatelessWidget {
+  final String text;
+
+  const _Bullet(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 10,
+            height: 10,
+            decoration: const BoxDecoration(color: Color(0xFFEA580C), shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 8),
+          Expanded(child: Text(text, style: const TextStyle(fontSize: 20, color: Color(0xFFF1F5F9)))),
+        ],
+      ),
+    );
+  }
+}
+
+class _FooterMini extends StatelessWidget {
+  final String title;
+  final List<String> items;
+
+  const _FooterMini({required this.title, required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 220,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),
+          ...items.map((i) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(i, style: const TextStyle(color: Color(0xFF94A3B8))),
+              )),
+        ],
+      ),
+    );
+  }
+}
+
+class SolarPanelItem {
+  final String id;
+  final String name;
+  final String type;
+  final String description;
+  final String image;
+  final String capacity;
+  final String efficiency;
+  final String price;
+  final double rating;
+  final int reviews;
+
+  const SolarPanelItem({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.description,
+    required this.image,
+    required this.capacity,
+    required this.efficiency,
+    required this.price,
+    required this.rating,
+    required this.reviews,
+  });
+}
+
+class TestimonialItem {
+  final String name;
+  final String company;
+  final int rating;
+  final String text;
+  final String location;
+
+  const TestimonialItem({
+    required this.name,
+    required this.company,
+    required this.rating,
+    required this.text,
+    required this.location,
+  });
+}
+
+class SolarBenefitItem {
+  final IconData icon;
+  final String title;
+  final String description;
+  final Color colorA;
+  final Color colorB;
+
+  const SolarBenefitItem({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.colorA,
+    required this.colorB,
+  });
 }
 
 class PlaceholderPage extends StatelessWidget {
