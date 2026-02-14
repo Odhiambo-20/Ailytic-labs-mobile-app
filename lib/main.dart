@@ -33,7 +33,7 @@ class AilyticLabsApp extends StatelessWidget {
         '/drones': (context) => const DronesPage(),
         '/solarpanels': (context) => const PlaceholderPage(title: 'Solar Panels'),
         '/products': (context) => const PlaceholderPage(title: 'Products'),
-        '/robots/catalog': (context) => const PlaceholderPage(title: 'Robots Catalog'),
+        '/robots/catalog': (context) => const RobotsCatalogPage(),
         '/solutions': (context) => const PlaceholderPage(title: 'Solutions'),
         '/research': (context) => const PlaceholderPage(title: 'Research'),
         '/about': (context) => const PlaceholderPage(title: 'About'),
@@ -3530,6 +3530,450 @@ class RobotItem {
   final int reviews;
 
   const RobotItem({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.description,
+    required this.image,
+    required this.capabilities,
+    required this.price,
+    required this.rating,
+    required this.reviews,
+  });
+}
+
+class RobotsCatalogPage extends StatefulWidget {
+  const RobotsCatalogPage({super.key});
+
+  @override
+  State<RobotsCatalogPage> createState() => _RobotsCatalogPageState();
+}
+
+class _RobotsCatalogPageState extends State<RobotsCatalogPage> {
+  List<CatalogRobot> robots = [];
+  bool loading = true;
+  int currentIndex = 0;
+  Timer? _slideTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRobots();
+  }
+
+  @override
+  void dispose() {
+    _slideTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _fetchRobots() async {
+    setState(() => loading = true);
+
+    const mockRobots = [
+      CatalogRobot(
+        id: '1',
+        name: 'AgroBot Pro X1',
+        type: 'Agricultural',
+        description:
+            'Advanced autonomous farming robot with AI-powered crop monitoring, precision planting, and smart harvesting capabilities.',
+        image:
+            'https://images.pexels.com/photos/2085831/pexels-photo-2085831.jpeg?auto=compress&cs=tinysrgb&w=800',
+        capabilities: ['Autonomous Navigation', 'Crop Analysis', 'Precision Planting', 'Smart Harvesting'],
+        price: '\$45,000',
+        rating: 4.8,
+        reviews: 124,
+      ),
+      CatalogRobot(
+        id: '2',
+        name: 'SafeTest 3000',
+        type: 'Food Testing',
+        description:
+            'Revolutionary food safety testing robot with 99.9% accuracy in detecting contaminants and ensuring compliance.',
+        image:
+            'https://images.pexels.com/photos/2085832/pexels-photo-2085832.jpeg?auto=compress&cs=tinysrgb&w=800',
+        capabilities: ['Contaminant Detection', 'Nutritional Analysis', 'Quality Control', 'Compliance Reporting'],
+        price: '\$78,000',
+        rating: 4.9,
+        reviews: 89,
+      ),
+      CatalogRobot(
+        id: '3',
+        name: 'IndustrialArm MAX',
+        type: 'Industrial',
+        description:
+            'High-precision industrial robotic arm designed for manufacturing and heavy-duty operations.',
+        image:
+            'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=800',
+        capabilities: ['Precision Assembly', 'Heavy Lifting', 'Quality Inspection', 'Welding'],
+        price: '\$125,000',
+        rating: 4.7,
+        reviews: 203,
+      ),
+      CatalogRobot(
+        id: '4',
+        name: 'RoboDog Alpha',
+        type: 'Companion',
+        description:
+            'Advanced quadruped robot with AI-powered mobility and interaction for security and inspection.',
+        image:
+            'https://images.pexels.com/photos/8566473/pexels-photo-8566473.jpeg?auto=compress&cs=tinysrgb&w=800',
+        capabilities: ['Terrain Navigation', 'Object Recognition', 'Voice Commands', 'Security Patrol'],
+        price: '\$32,000',
+        rating: 4.6,
+        reviews: 156,
+      ),
+      CatalogRobot(
+        id: '5',
+        name: 'MediBot Care+',
+        type: 'Medical',
+        description:
+            'Healthcare assistance robot for patient monitoring and medication workflow support.',
+        image:
+            'https://images.pexels.com/photos/8460157/pexels-photo-8460157.jpeg?auto=compress&cs=tinysrgb&w=800',
+        capabilities: ['Patient Monitoring', 'Medication Delivery', 'Vital Tracking', 'Emergency Response'],
+        price: '\$95,000',
+        rating: 4.9,
+        reviews: 78,
+      ),
+      CatalogRobot(
+        id: '6',
+        name: 'CleanBot Pro',
+        type: 'Service',
+        description:
+            'Intelligent commercial cleaning robot with advanced navigation and multi-surface support.',
+        image:
+            'https://images.pexels.com/photos/8386440/pexels-photo-8386440.jpeg?auto=compress&cs=tinysrgb&w=800',
+        capabilities: ['Auto Mapping', 'Multi-Surface Cleaning', 'Obstacle Avoidance', 'Schedule Management'],
+        price: '\$18,500',
+        rating: 4.5,
+        reviews: 312,
+      ),
+      CatalogRobot(
+        id: '7',
+        name: 'LogisticsPro X500',
+        type: 'Warehouse',
+        description:
+            'Automated warehouse robot for inventory management, picking, and transportation of goods.',
+        image:
+            'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=800',
+        capabilities: ['Inventory Tracking', 'Automated Picking', 'Load Transport', 'Route Optimization'],
+        price: '\$65,000',
+        rating: 4.8,
+        reviews: 145,
+      ),
+      CatalogRobot(
+        id: '8',
+        name: 'EduBot Scholar',
+        type: 'Educational',
+        description:
+            'Interactive educational robot to teach coding and STEM through engaging AI-powered lessons.',
+        image:
+            'https://images.pexels.com/photos/8438979/pexels-photo-8438979.jpeg?auto=compress&cs=tinysrgb&w=800',
+        capabilities: ['Interactive Learning', 'Coding Tutorials', 'STEM Education', 'Progress Tracking'],
+        price: '\$8,900',
+        rating: 4.7,
+        reviews: 567,
+      ),
+      CatalogRobot(
+        id: '9',
+        name: 'SecurityBot Guardian',
+        type: 'Security',
+        description:
+            'Advanced security and surveillance robot with thermal imaging and autonomous patrol.',
+        image:
+            'https://images.pexels.com/photos/2599244/pexels-photo-2599244.jpeg?auto=compress&cs=tinysrgb&w=800',
+        capabilities: ['Thermal Imaging', 'Facial Recognition', 'Autonomous Patrol', 'Alert System'],
+        price: '\$52,000',
+        rating: 4.6,
+        reviews: 98,
+      ),
+    ];
+
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (!mounted) return;
+
+    setState(() {
+      robots = mockRobots;
+      loading = false;
+      currentIndex = 0;
+    });
+
+    _slideTimer?.cancel();
+    _slideTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (!mounted || robots.isEmpty) return;
+      setState(() {
+        currentIndex = (currentIndex + 1) % robots.length;
+      });
+    });
+  }
+
+  void _goNext() {
+    if (robots.isEmpty) return;
+    setState(() => currentIndex = (currentIndex + 1) % robots.length);
+  }
+
+  void _goPrev() {
+    if (robots.isEmpty) return;
+    setState(() => currentIndex = (currentIndex - 1 + robots.length) % robots.length);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.sizeOf(context).width < 900;
+    final currentRobot = robots.isNotEmpty ? robots[currentIndex] : null;
+
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 60),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF0F172A), Color(0xFF1E3A8A), Color(0xFF0F172A)],
+                ),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'Our Robot Collection',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: isMobile ? 44 : 64, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Discover our complete lineup of intelligent robots powered by advanced AI and cutting-edge technology.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Color(0xFFBFDBFE), fontSize: 20),
+                  ),
+                ],
+              ),
+            ),
+            if (loading)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 100),
+                child: Column(
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 12),
+                    Text('Loading our amazing robots...'),
+                  ],
+                ),
+              )
+            else if (currentRobot != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xCC1E293B), Color(0xCC1E3A8A)],
+                      ),
+                    ),
+                    child: Stack(
+                      children: [
+                        SizedBox(
+                          height: isMobile ? 520 : 700,
+                          width: double.infinity,
+                          child: Image.network(
+                            currentRobot.image,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const _AssetBackground(assetPath: 'assets/drone.jpg'),
+                          ),
+                        ),
+                        Container(
+                          height: isMobile ? 520 : 700,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                              colors: [Colors.black.withOpacity(0.85), Colors.black.withOpacity(0.35)],
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          left: 12,
+                          top: 0,
+                          bottom: 0,
+                          child: Center(
+                            child: CircleIconButton(icon: Icons.chevron_left, onTap: _goPrev),
+                          ),
+                        ),
+                        Positioned(
+                          right: 12,
+                          top: 0,
+                          bottom: 0,
+                          child: Center(
+                            child: CircleIconButton(icon: Icons.chevron_right, onTap: _goNext),
+                          ),
+                        ),
+                        Positioned(
+                          top: 16,
+                          right: 16,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xE62196F3),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(currentRobot.type),
+                          ),
+                        ),
+                        Positioned(
+                          top: 16,
+                          left: 16,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.55),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text('★ ${currentRobot.rating.toStringAsFixed(1)}'),
+                          ),
+                        ),
+                        Positioned(
+                          top: 16,
+                          left: 0,
+                          right: 0,
+                          child: Center(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.55),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text('${currentIndex + 1} / ${robots.length}'),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          left: 20,
+                          right: 20,
+                          bottom: 20,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                currentRobot.name,
+                                style: TextStyle(
+                                  fontSize: isMobile ? 34 : 60,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                currentRobot.description,
+                                style: const TextStyle(fontSize: 20, color: Color(0xFFBFDBFE)),
+                              ),
+                              const SizedBox(height: 10),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: currentRobot.capabilities
+                                    .take(4)
+                                    .map(
+                                      (c) => Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(999),
+                                          border: Border.all(color: Colors.white24),
+                                        ),
+                                        child: Text(c),
+                                      ),
+                                    )
+                                    .toList(),
+                              ),
+                              const SizedBox(height: 10),
+                              DecoratedBox(
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(colors: [Color(0xFF2563EB), Color(0xFF7C3AED)]),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: TextButton.icon(
+                                  onPressed: () {},
+                                  iconAlignment: IconAlignment.end,
+                                  icon: const Icon(Icons.chevron_right),
+                                  label: const Text('Learn More', style: TextStyle(fontWeight: FontWeight.w700)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 36),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [Color(0x803B82F6), Color(0x807C3AED)],
+                ),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'Need Help Choosing?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: isMobile ? 34 : 48, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Our robotics experts are here to help you find the perfect robot for your needs.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Color(0xFFBFDBFE), fontSize: 20),
+                  ),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      GradientButton(
+                        text: 'Contact Sales',
+                        a: const Color(0xFF2563EB),
+                        b: const Color(0xFF7C3AED),
+                        onPressed: () => Navigator.pushNamed(context, '/contact'),
+                      ),
+                      OutlinedButton(
+                        onPressed: () => Navigator.pushNamed(context, '/demo', arguments: 'robot'),
+                        child: const Text('Request a Demo'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CatalogRobot {
+  final String id;
+  final String name;
+  final String type;
+  final String description;
+  final String image;
+  final List<String> capabilities;
+  final String price;
+  final double rating;
+  final int reviews;
+
+  const CatalogRobot({
     required this.id,
     required this.name,
     required this.type,
