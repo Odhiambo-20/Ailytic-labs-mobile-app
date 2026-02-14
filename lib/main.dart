@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:uni_links/uni_links.dart';
 
 void main() {
   runApp(const AilyticLabsApp());
@@ -5884,9 +5885,17 @@ class _LoginPageState extends State<LoginPage> {
   bool _showPassword = false;
   String? _emailError;
   String? _passwordError;
+  StreamSubscription<Uri?>? _linkSub;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeDeepLinkHandling();
+  }
 
   @override
   void dispose() {
+    _linkSub?.cancel();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -5902,6 +5911,128 @@ class _LoginPageState extends State<LoginPage> {
       if (parsed is Map<String, dynamic>) return parsed;
     } catch (_) {}
     return null;
+  }
+
+  Future<void> _initializeDeepLinkHandling() async {
+    if (kIsWeb) {
+      await _handleOAuthRedirectUri(Uri.base);
+      return;
+    }
+
+    try {
+      final initialUri = await getInitialUri();
+      if (initialUri != null) {
+        await _handleOAuthRedirectUri(initialUri);
+      }
+    } catch (_) {}
+
+    _linkSub?.cancel();
+    _linkSub = uriLinkStream.listen(
+      (uri) {
+        if (uri != null) {
+          _handleOAuthRedirectUri(uri);
+        }
+      },
+      onError: (_) {},
+    );
+  }
+
+  bool _isOAuthRedirect(Uri uri) {
+    final isAppScheme =
+        uri.scheme.toLowerCase() == 'allyticlabs' && uri.host.toLowerCase() == 'oauth2' && uri.path == '/redirect';
+
+    final isWebCallback = kIsWeb && uri.path.contains('/oauth2/redirect');
+
+    return isAppScheme || isWebCallback;
+  }
+
+  Map<String, String> _extractOAuthParams(Uri uri) {
+    final params = <String, String>{};
+    params.addAll(uri.queryParameters);
+
+    if (uri.fragment.isNotEmpty) {
+      try {
+        final fragmentParams = Uri.splitQueryString(uri.fragment);
+        for (final entry in fragmentParams.entries) {
+          params.putIfAbsent(entry.key, () => entry.value);
+        }
+      } catch (_) {}
+    }
+
+    return params;
+  }
+
+  Future<void> _handleOAuthRedirectUri(Uri uri) async {
+    if (!_isOAuthRedirect(uri) || !mounted) return;
+
+    final params = _extractOAuthParams(uri);
+
+    if (params.containsKey('error')) {
+      if (!mounted) return;
+      setState(() {
+        _passwordError = params['error_description'] ?? params['error'] ?? 'Google sign-in failed.';
+      });
+      return;
+    }
+
+    final accessToken = params['accessToken'] ?? params['access_token'];
+    final refreshToken = params['refreshToken'] ?? params['refresh_token'];
+    final userId = params['userId'] ?? params['user_id'];
+    final email = params['email'];
+    final username = params['username'];
+    final rolesRaw = params['roles'];
+
+    if (accessToken != null && accessToken.isNotEmpty) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('accessToken', accessToken);
+
+      if (refreshToken != null && refreshToken.isNotEmpty) {
+        await prefs.setString('refreshToken', refreshToken);
+      }
+      if (userId != null && userId.isNotEmpty) {
+        await prefs.setString('userId', userId);
+      }
+
+      final resolvedEmail = (email != null && email.isNotEmpty) ? email : _emailController.text.trim();
+      final resolvedUsername = (username != null && username.isNotEmpty)
+          ? username
+          : (resolvedEmail.isNotEmpty ? resolvedEmail : 'google_user');
+
+      if (resolvedEmail.isNotEmpty) {
+        await prefs.setString('userEmail', resolvedEmail);
+      }
+      await prefs.setString('username', resolvedUsername);
+
+      final roles = rolesRaw != null && rolesRaw.isNotEmpty
+          ? rolesRaw.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList()
+          : <String>[];
+
+      await prefs.setString(
+        'user',
+        jsonEncode({
+          'userId': userId,
+          'email': resolvedEmail,
+          'username': resolvedUsername,
+          'roles': roles,
+        }),
+      );
+
+      final returnTo = params['state'] ?? prefs.getString('returnTo') ?? '/';
+      await prefs.remove('returnTo');
+
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(context, returnTo, (route) => false);
+      return;
+    }
+
+    final code = params['code'];
+    if (code != null && code.isNotEmpty) {
+      if (!mounted) return;
+      setState(() {
+        _passwordError =
+            'Google sign-in returned an authorization code but no access token. Configure backend callback to include tokens in redirect.';
+      });
+    }
   }
 
   void _submitEmail() {
@@ -6043,6 +6174,7 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final returnTo = prefs.getString('returnTo') ?? '/';
+      await prefs.setString('returnTo', returnTo);
 
       final redirectUri = kIsWeb
           ? '${Uri.base.origin}/oauth2/redirect'
