@@ -8,7 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:uni_links/uni_links.dart';
+import 'package:app_links/app_links.dart';
 
 void main() {
   runApp(const AilyticLabsApp());
@@ -5885,7 +5885,8 @@ class _LoginPageState extends State<LoginPage> {
   bool _showPassword = false;
   String? _emailError;
   String? _passwordError;
-  StreamSubscription<Uri?>? _linkSub;
+  final AppLinks _appLinks = AppLinks();
+  StreamSubscription<Uri>? _linkSub;
 
   @override
   void initState() {
@@ -5920,18 +5921,16 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     try {
-      final initialUri = await getInitialUri();
+      final initialUri = await _appLinks.getInitialLink();
       if (initialUri != null) {
         await _handleOAuthRedirectUri(initialUri);
       }
     } catch (_) {}
 
     _linkSub?.cancel();
-    _linkSub = uriLinkStream.listen(
+    _linkSub = _appLinks.uriLinkStream.listen(
       (uri) {
-        if (uri != null) {
-          _handleOAuthRedirectUri(uri);
-        }
+        _handleOAuthRedirectUri(uri);
       },
       onError: (_) {},
     );
