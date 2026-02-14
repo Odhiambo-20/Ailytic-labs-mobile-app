@@ -2,10 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
   runApp(const AilyticLabsApp());
@@ -6037,10 +6039,38 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void _googleLogin() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Google OAuth redirect is not configured in this Flutter app yet.')),
-    );
+  Future<void> _googleLogin() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final returnTo = prefs.getString('returnTo') ?? '/';
+
+      final redirectUri = kIsWeb
+          ? '${Uri.base.origin}/oauth2/redirect'
+          : 'allyticlabs://oauth2/redirect';
+
+      final oauthUri = Uri.parse('$_apiBaseUrl/oauth2/authorize/google').replace(
+        queryParameters: {
+          'redirect_uri': redirectUri,
+          'state': returnTo,
+        },
+      );
+
+      final launched = await launchUrl(
+        oauthUri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not launch Google sign-in.')),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to start Google sign-in.')),
+      );
+    }
   }
 
   @override
