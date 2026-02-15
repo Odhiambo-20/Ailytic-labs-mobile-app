@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:video_player/video_player.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -4358,13 +4359,13 @@ class _ContactPageState extends State<ContactPage> {
               const SizedBox(height: 8),
               const Row(
                 children: [
-                  _SocialIcon(icon: Icons.camera_alt),
+                  _SocialIcon(icon: FontAwesomeIcons.instagram),
                   SizedBox(width: 8),
-                  _SocialIcon(icon: Icons.code),
+                  _SocialIcon(icon: FontAwesomeIcons.github),
                   SizedBox(width: 8),
-                  _SocialIcon(icon: Icons.play_arrow),
+                  _SocialIcon(icon: FontAwesomeIcons.youtube),
                   SizedBox(width: 8),
-                  _SocialIcon(icon: Icons.business),
+                  _SocialIcon(icon: FontAwesomeIcons.linkedinIn),
                 ],
               ),
             ],
@@ -4520,7 +4521,7 @@ class _SocialIcon extends StatelessWidget {
         color: Colors.white.withOpacity(0.12),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Icon(icon, size: 18),
+      child: Center(child: FaIcon(icon, size: 18)),
     );
   }
 }
