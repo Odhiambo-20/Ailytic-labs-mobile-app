@@ -49,7 +49,7 @@ class AilyticLabsApp extends StatelessWidget {
         '/signup': (context) => const SignUpPage(),
         '/login': (context) => const LoginPage(),
         '/privacy': (context) => const PlaceholderPage(title: 'Privacy & Legal'),
-        '/support': (context) => const PlaceholderPage(title: 'Support'),
+        '/support': (context) => const SupportPage(),
         '/partners': (context) => const PlaceholderPage(title: 'Partners'),
         '/demo': (context) => const DemoPage(),
         '/order': (context) => const OrderPage(),
@@ -6186,6 +6186,333 @@ class _NewsItem {
     required this.date,
     required this.readTime,
   });
+}
+
+class SupportPage extends StatelessWidget {
+  const SupportPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.sizeOf(context).width < 900;
+
+    const topics = [
+      _SupportTopic(
+        title: 'Technical Support',
+        body: 'Troubleshooting, diagnostics, and system issues for deployed solutions.',
+        icon: Icons.build_circle,
+      ),
+      _SupportTopic(
+        title: 'Account & Access',
+        body: 'Login, permissions, onboarding access, and account management requests.',
+        icon: Icons.manage_accounts,
+      ),
+      _SupportTopic(
+        title: 'Maintenance & Service',
+        body: 'Scheduled maintenance, replacement parts, and field service coordination.',
+        icon: Icons.settings_suggest,
+      ),
+      _SupportTopic(
+        title: 'Billing & Contracts',
+        body: 'Invoices, renewals, support plans, and contract-related assistance.',
+        icon: Icons.receipt_long,
+      ),
+    ];
+
+    const faqs = [
+      _SupportFaq(
+        q: 'How quickly do you respond to support requests?',
+        a: 'Standard response is within one business day. Critical incidents are prioritized immediately.',
+      ),
+      _SupportFaq(
+        q: 'How can I request urgent technical help?',
+        a: 'Use the Support channel and include system ID, issue summary, and impact level for faster triage.',
+      ),
+      _SupportFaq(
+        q: 'Do you provide remote troubleshooting?',
+        a: 'Yes. Our team supports remote diagnostics and guided resolution for most operational issues.',
+      ),
+    ];
+
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.fromLTRB(20, isMobile ? 90 : 120, 20, 56),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF0B1224), Color(0xFF1E3A8A), Color(0xFF0F766E)],
+                ),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.12),
+                      border: Border.all(color: Colors.white24),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: const Text('Support Center', style: TextStyle(color: Color(0xFFDBEAFE), fontWeight: FontWeight.w600)),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    'How Can We Help?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: isMobile ? 44 : 72, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Get product support, service coordination, and fast answers from our team.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Color(0xFFE2E8F0), fontSize: 21),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              color: const Color(0xFFF8FAFC),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 34),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1120),
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: topics.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: isMobile ? 1 : 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: isMobile ? 2.2 : 1.8,
+                    ),
+                    itemBuilder: (context, i) => _SupportTopicCard(item: topics[i]),
+                  ),
+                ),
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              color: const Color(0xFF0F172A),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 34),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1120),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Support Channels',
+                        style: TextStyle(fontSize: isMobile ? 36 : 52, fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        'Choose the channel that best matches your issue type and urgency.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Color(0xFF94A3B8), fontSize: 19),
+                      ),
+                      const SizedBox(height: 16),
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: [
+                          _SupportChannelCard(
+                            icon: Icons.email,
+                            title: 'Email Support',
+                            detail: 'support@ailyticslabs.com',
+                            actionLabel: 'Send Email',
+                            onTap: () async {
+                              final uri = Uri.parse('mailto:support@ailyticslabs.com');
+                              await launchUrl(uri);
+                            },
+                          ),
+                          _SupportChannelCard(
+                            icon: Icons.phone,
+                            title: 'Phone Support',
+                            detail: '+254 748 630 243',
+                            actionLabel: 'Call Now',
+                            onTap: () async {
+                              final uri = Uri.parse('tel:+254748630243');
+                              await launchUrl(uri);
+                            },
+                          ),
+                          _SupportChannelCard(
+                            icon: Icons.contact_support,
+                            title: 'Contact Form',
+                            detail: 'Submit detailed requests',
+                            actionLabel: 'Open Contact',
+                            onTap: () => Navigator.pushNamed(context, '/contact'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 34),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1120),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Frequently Asked Questions',
+                        style: TextStyle(
+                          color: const Color(0xFF0F172A),
+                          fontSize: isMobile ? 34 : 48,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      ...faqs.map(
+                        (f) => Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            boxShadow: const [
+                              BoxShadow(color: Color(0x12000000), blurRadius: 10, offset: Offset(0, 4)),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(f.q, style: const TextStyle(color: Color(0xFF0F172A), fontSize: 20, fontWeight: FontWeight.w800)),
+                              const SizedBox(height: 8),
+                              Text(f.a, style: const TextStyle(color: Color(0xFF334155), fontSize: 16)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SupportTopic {
+  final String title;
+  final String body;
+  final IconData icon;
+
+  const _SupportTopic({required this.title, required this.body, required this.icon});
+}
+
+class _SupportFaq {
+  final String q;
+  final String a;
+
+  const _SupportFaq({required this.q, required this.a});
+}
+
+class _SupportTopicCard extends StatelessWidget {
+  final _SupportTopic item;
+
+  const _SupportTopicCard({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [BoxShadow(color: Color(0x12000000), blurRadius: 10, offset: Offset(0, 4))],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE0E7FF),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(item.icon, color: const Color(0xFF1D4ED8)),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(item.title, style: const TextStyle(color: Color(0xFF0F172A), fontSize: 22, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 6),
+                Text(item.body, style: const TextStyle(color: Color(0xFF475569))),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SupportChannelCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String detail;
+  final String actionLabel;
+  final VoidCallback onTap;
+
+  const _SupportChannelCard({
+    required this.icon,
+    required this.title,
+    required this.detail,
+    required this.actionLabel,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 340,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF111827),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFF1F2937)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: const Color(0xFF60A5FA), size: 28),
+            const SizedBox(height: 10),
+            Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 6),
+            Text(detail, style: const TextStyle(color: Color(0xFF9CA3AF))),
+            const SizedBox(height: 10),
+            OutlinedButton(
+              onPressed: onTap,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white,
+                side: const BorderSide(color: Color(0xFF60A5FA)),
+              ),
+              child: Text(actionLabel),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class CareersPage extends StatelessWidget {
