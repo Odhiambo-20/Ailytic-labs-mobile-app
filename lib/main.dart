@@ -4359,13 +4359,25 @@ class _ContactPageState extends State<ContactPage> {
               const SizedBox(height: 8),
               const Row(
                 children: [
-                  _SocialIcon(icon: FontAwesomeIcons.instagram),
+                  _SocialIcon(
+                    icon: FontAwesomeIcons.instagram,
+                    url: 'https://www.instagram.com/ailyticslabs',
+                  ),
                   SizedBox(width: 8),
-                  _SocialIcon(icon: FontAwesomeIcons.github),
+                  _SocialIcon(
+                    icon: FontAwesomeIcons.github,
+                    url: 'https://github.com/ailyticslabs',
+                  ),
                   SizedBox(width: 8),
-                  _SocialIcon(icon: FontAwesomeIcons.youtube),
+                  _SocialIcon(
+                    icon: FontAwesomeIcons.youtube,
+                    url: 'https://www.youtube.com/@ailyticslabs',
+                  ),
                   SizedBox(width: 8),
-                  _SocialIcon(icon: FontAwesomeIcons.linkedinIn),
+                  _SocialIcon(
+                    icon: FontAwesomeIcons.linkedinIn,
+                    url: 'https://www.linkedin.com/company/ailyticslabs',
+                  ),
                 ],
               ),
             ],
@@ -4509,19 +4521,37 @@ class _InfoRow extends StatelessWidget {
 
 class _SocialIcon extends StatelessWidget {
   final IconData icon;
+  final String url;
 
-  const _SocialIcon({required this.icon});
+  const _SocialIcon({required this.icon, required this.url});
+
+  Future<void> _open(BuildContext context) async {
+    final uri = Uri.parse(url);
+    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!ok && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open social media link.')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.12),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _open(context),
         borderRadius: BorderRadius.circular(8),
+        child: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Center(child: FaIcon(icon, size: 18)),
+        ),
       ),
-      child: Center(child: FaIcon(icon, size: 18)),
     );
   }
 }
