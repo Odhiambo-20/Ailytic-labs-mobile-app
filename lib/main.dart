@@ -44,7 +44,7 @@ class AilyticLabsApp extends StatelessWidget {
         '/research': (context) => const PlaceholderPage(title: 'Research'),
         '/about': (context) => const AboutPage(),
         '/careers': (context) => const CareersPage(),
-        '/news': (context) => const PlaceholderPage(title: 'News'),
+        '/news': (context) => const NewsPage(),
         '/contact': (context) => const ContactPage(),
         '/signup': (context) => const SignUpPage(),
         '/login': (context) => const LoginPage(),
@@ -5914,6 +5914,278 @@ class _AboutValueCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class NewsPage extends StatefulWidget {
+  const NewsPage({super.key});
+
+  @override
+  State<NewsPage> createState() => _NewsPageState();
+}
+
+class _NewsPageState extends State<NewsPage> {
+  String selectedCategory = 'All';
+
+  final List<String> categories = const [
+    'All',
+    'Robotics',
+    'Drones',
+    'Solar',
+    'Company',
+  ];
+
+  final List<_NewsItem> news = const [
+    _NewsItem(
+      title: 'Ailytic Labs Launches Autonomous Inspection Drone Suite',
+      excerpt:
+          'New AI-assisted flight stack improves inspection speed and reduces manual review time by up to 45%.',
+      category: 'Drones',
+      date: 'February 2026',
+      readTime: '5 min read',
+    ),
+    _NewsItem(
+      title: 'Industrial Robotics Deployment Reaches 99.9% Uptime',
+      excerpt:
+          'Latest manufacturing rollout demonstrates stable, high-throughput automation across three facilities.',
+      category: 'Robotics',
+      date: 'January 2026',
+      readTime: '4 min read',
+    ),
+    _NewsItem(
+      title: 'Solar Analytics Platform Adds Predictive Maintenance Alerts',
+      excerpt:
+          'Operations teams can now detect underperformance trends earlier with anomaly and weather correlation.',
+      category: 'Solar',
+      date: 'January 2026',
+      readTime: '6 min read',
+    ),
+    _NewsItem(
+      title: 'Ailytic Labs Expands Regional Service Network',
+      excerpt:
+          'New partner coverage improves implementation support and field response times across key markets.',
+      category: 'Company',
+      date: 'December 2025',
+      readTime: '3 min read',
+    ),
+    _NewsItem(
+      title: 'Multi-Robot Orchestration Engine Enters Production',
+      excerpt:
+          'Coordinated fleet control now powers logistics and warehouse workflows with improved throughput.',
+      category: 'Robotics',
+      date: 'November 2025',
+      readTime: '5 min read',
+    ),
+    _NewsItem(
+      title: 'Field Pilot: Smart Solar Monitoring for Commercial Roofs',
+      excerpt:
+          'Pilot results show faster fault triage and better energy yield consistency in mixed-weather conditions.',
+      category: 'Solar',
+      date: 'October 2025',
+      readTime: '4 min read',
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.sizeOf(context).width < 900;
+    final filtered = selectedCategory == 'All'
+        ? news
+        : news.where((n) => n.category == selectedCategory).toList();
+
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.fromLTRB(20, isMobile ? 90 : 120, 20, 56),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF0B1224), Color(0xFF1E3A8A), Color(0xFF0EA5E9)],
+                ),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.12),
+                      border: Border.all(color: Colors.white24),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: const Text('Newsroom', style: TextStyle(color: Color(0xFFDBEAFE), fontWeight: FontWeight.w600)),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    'Latest News & Updates',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: isMobile ? 44 : 72, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Announcements, product updates, and engineering milestones from Ailytic Labs.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Color(0xFFE2E8F0), fontSize: 21),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              color: const Color(0xFFF8FAFC),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 26),
+              child: Center(
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: categories
+                      .map(
+                        (c) => ChoiceChip(
+                          label: Text(c),
+                          selected: selectedCategory == c,
+                          onSelected: (_) => setState(() => selectedCategory = c),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              color: const Color(0xFF0F172A),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1120),
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(colors: [Color(0xFF1E293B), Color(0xFF111827)]),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFF334155)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1D4ED8),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: const Text('Featured', style: TextStyle(fontWeight: FontWeight.w700)),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(news.first.title, style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w800)),
+                        const SizedBox(height: 8),
+                        Text(news.first.excerpt, style: const TextStyle(color: Color(0xFFCBD5E1), fontSize: 18)),
+                        const SizedBox(height: 10),
+                        Text('${news.first.category} · ${news.first.date} · ${news.first.readTime}', style: const TextStyle(color: Color(0xFF93C5FD))),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1120),
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: filtered.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: isMobile ? 1 : 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: isMobile ? 1.7 : 1.45,
+                    ),
+                    itemBuilder: (context, i) {
+                      final item = filtered[i];
+                      return Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF111827),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFF1F2937)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(item.category, style: const TextStyle(color: Color(0xFF60A5FA), fontWeight: FontWeight.w700)),
+                            const SizedBox(height: 8),
+                            Text(item.title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+                            const SizedBox(height: 8),
+                            Text(item.excerpt, style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 16)),
+                            const Spacer(),
+                            Text('${item.date} · ${item.readTime}', style: const TextStyle(color: Color(0xFF94A3B8))),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              color: const Color(0xFF111827),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 34),
+              child: Column(
+                children: [
+                  const Text('Want product updates directly?', style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      GradientButton(
+                        text: 'Contact Us',
+                        a: const Color(0xFF2563EB),
+                        b: const Color(0xFF06B6D4),
+                        onPressed: () => Navigator.pushNamed(context, '/contact'),
+                      ),
+                      OutlinedButton(
+                        onPressed: () => Navigator.pushNamed(context, '/about'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: const BorderSide(color: Colors.white54),
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+                        ),
+                        child: const Text('About Us'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NewsItem {
+  final String title;
+  final String excerpt;
+  final String category;
+  final String date;
+  final String readTime;
+
+  const _NewsItem({
+    required this.title,
+    required this.excerpt,
+    required this.category,
+    required this.date,
+    required this.readTime,
+  });
 }
 
 class CareersPage extends StatelessWidget {
