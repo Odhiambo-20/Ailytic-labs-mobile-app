@@ -42,7 +42,7 @@ class AilyticLabsApp extends StatelessWidget {
         '/robots/catalog': (context) => const RobotsCatalogPage(),
         '/solutions': (context) => const PlaceholderPage(title: 'Solutions'),
         '/research': (context) => const PlaceholderPage(title: 'Research'),
-        '/about': (context) => const PlaceholderPage(title: 'About'),
+        '/about': (context) => const AboutPage(),
         '/careers': (context) => const CareersPage(),
         '/news': (context) => const PlaceholderPage(title: 'News'),
         '/contact': (context) => const ContactPage(),
@@ -5667,6 +5667,253 @@ class SolarBenefitItem {
     required this.colorA,
     required this.colorB,
   });
+}
+
+class AboutPage extends StatelessWidget {
+  const AboutPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.sizeOf(context).width < 900;
+
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.fromLTRB(20, isMobile ? 90 : 120, 20, 56),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF0B1224), Color(0xFF1E3A8A), Color(0xFF0F766E)],
+                ),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.12),
+                      border: Border.all(color: Colors.white24),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: const Text(
+                      'About Ailytic Labs',
+                      style: TextStyle(color: Color(0xFFDBEAFE), fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    'Engineering Practical Innovation',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: isMobile ? 44 : 72, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'We build robotics, drone, and solar systems that solve real operational problems at scale.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Color(0xFFE2E8F0), fontSize: 21),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              color: const Color(0xFFF8FAFC),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 42),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1120),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Our Mission',
+                        style: TextStyle(
+                          color: const Color(0xFF0F172A),
+                          fontSize: isMobile ? 38 : 56,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Deliver dependable intelligent systems that improve productivity, safety, and sustainability across industries.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Color(0xFF334155), fontSize: 19),
+                      ),
+                      const SizedBox(height: 20),
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: const [
+                          _AboutMetricCard(label: 'Projects Delivered', value: '120+'),
+                          _AboutMetricCard(label: 'Enterprise Clients', value: '45+'),
+                          _AboutMetricCard(label: 'Countries Served', value: '9'),
+                          _AboutMetricCard(label: 'Uptime Across Systems', value: '99.9%'),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 42),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF0F172A), Color(0xFF0B1224)],
+                ),
+              ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1120),
+                  child: Column(
+                    children: [
+                      Text(
+                        'What Defines Us',
+                        style: TextStyle(fontSize: isMobile ? 36 : 52, fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        'A practical culture focused on execution quality and long-term customer value.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Color(0xFF94A3B8), fontSize: 19),
+                      ),
+                      const SizedBox(height: 18),
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: const [
+                          _AboutValueCard(
+                            icon: Icons.verified,
+                            title: 'Reliability First',
+                            text: 'We prioritize robust systems with measurable performance and minimal downtime.',
+                          ),
+                          _AboutValueCard(
+                            icon: Icons.psychology,
+                            title: 'Applied Intelligence',
+                            text: 'AI is used where it creates clear operational impact, not as a gimmick.',
+                          ),
+                          _AboutValueCard(
+                            icon: Icons.handshake,
+                            title: 'Long-Term Partnership',
+                            text: 'We work closely with clients from deployment through optimization and support.',
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              color: const Color(0xFF111827),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 34),
+              child: Column(
+                children: [
+                  const Text(
+                    'Want to build with us or partner with us?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      GradientButton(
+                        text: 'Contact Us',
+                        a: const Color(0xFF2563EB),
+                        b: const Color(0xFF06B6D4),
+                        onPressed: () => Navigator.pushNamed(context, '/contact'),
+                      ),
+                      OutlinedButton(
+                        onPressed: () => Navigator.pushNamed(context, '/careers'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: const BorderSide(color: Colors.white54),
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+                        ),
+                        child: const Text('See Careers'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AboutMetricCard extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _AboutMetricCard({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 250,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [BoxShadow(color: Color(0x12000000), blurRadius: 10, offset: Offset(0, 4))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(value, style: const TextStyle(color: Color(0xFF0F172A), fontSize: 34, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 6),
+          Text(label, style: const TextStyle(color: Color(0xFF334155), fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+}
+
+class _AboutValueCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String text;
+
+  const _AboutValueCard({required this.icon, required this.title, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 340,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF111827),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFF1F2937)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: const Color(0xFF60A5FA), size: 30),
+            const SizedBox(height: 10),
+            Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            Text(text, style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 16)),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class CareersPage extends StatelessWidget {
