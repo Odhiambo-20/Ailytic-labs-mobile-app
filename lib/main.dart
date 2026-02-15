@@ -4156,6 +4156,21 @@ class _ContactPageState extends State<ContactPage> {
           inputDecorationTheme: InputDecorationTheme(
             filled: true,
             fillColor: const Color(0xFFF8FAFC),
+            labelStyle: const TextStyle(
+              color: Color(0xFF334155),
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
+            floatingLabelStyle: const TextStyle(
+              color: Color(0xFF1D4ED8),
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+            ),
+            hintStyle: const TextStyle(
+              color: Color(0xFF64748B),
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -4226,14 +4241,51 @@ class _ContactPageState extends State<ContactPage> {
                 ),
                 DropdownButtonFormField<String>(
                   value: helpType,
-                  decoration: const InputDecoration(labelText: 'How can we help you?'),
+                  style: const TextStyle(
+                    color: Color(0xFF0F172A),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  dropdownColor: Colors.white,
+                  iconEnabledColor: const Color(0xFF334155),
+                  decoration: const InputDecoration(
+                    labelText: 'How can we help you?',
+                    labelStyle: TextStyle(
+                      color: Color(0xFF334155),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    floatingLabelStyle: TextStyle(
+                      color: Color(0xFF1D4ED8),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                   items: const [
-                    DropdownMenuItem(value: 'Product Information', child: Text('Product Information')),
-                    DropdownMenuItem(value: 'Technical Support', child: Text('Technical Support')),
-                    DropdownMenuItem(value: 'Partnership Inquiry', child: Text('Partnership Inquiry')),
-                    DropdownMenuItem(value: 'Media Inquiry', child: Text('Media Inquiry')),
-                    DropdownMenuItem(value: 'Sales Inquiry', child: Text('Sales Inquiry')),
-                    DropdownMenuItem(value: 'Other', child: Text('Other')),
+                    DropdownMenuItem(
+                      value: 'Product Information',
+                      child: Text('Product Information', style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.w600)),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Technical Support',
+                      child: Text('Technical Support', style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.w600)),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Partnership Inquiry',
+                      child: Text('Partnership Inquiry', style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.w600)),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Media Inquiry',
+                      child: Text('Media Inquiry', style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.w600)),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Sales Inquiry',
+                      child: Text('Sales Inquiry', style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.w600)),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Other',
+                      child: Text('Other', style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.w600)),
+                    ),
                   ],
                   onChanged: (v) => setState(() => helpType = v ?? 'Product Information'),
                 ),
@@ -4241,7 +4293,31 @@ class _ContactPageState extends State<ContactPage> {
                 TextFormField(
                   minLines: 6,
                   maxLines: 6,
-                  decoration: const InputDecoration(labelText: 'Your message'),
+                  style: const TextStyle(
+                    color: Color(0xFF0F172A),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  cursorColor: Color(0xFF1D4ED8),
+                  decoration: const InputDecoration(
+                    labelText: 'Your message',
+                    labelStyle: TextStyle(
+                      color: Color(0xFF334155),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    floatingLabelStyle: TextStyle(
+                      color: Color(0xFF1D4ED8),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    hintText: 'Tell us more about your inquiry...',
+                    hintStyle: TextStyle(
+                      color: Color(0xFF64748B),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   onSaved: (v) => message = v ?? '',
                 ),
                 const SizedBox(height: 14),
@@ -4476,7 +4552,30 @@ class _ContactField extends StatelessWidget {
         keyboardType: keyboardType,
         validator: validator,
         onSaved: onSaved,
-        decoration: InputDecoration(labelText: label),
+        style: const TextStyle(
+          color: Color(0xFF0F172A),
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+        cursorColor: const Color(0xFF1D4ED8),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(
+            color: Color(0xFF334155),
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
+          floatingLabelStyle: const TextStyle(
+            color: Color(0xFF1D4ED8),
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+          ),
+          hintStyle: const TextStyle(
+            color: Color(0xFF64748B),
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ),
     );
   }
