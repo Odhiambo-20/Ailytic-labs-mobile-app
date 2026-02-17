@@ -634,6 +634,7 @@ class HomeNavBar extends StatelessWidget {
                 PopupMenuItem(value: '/drones', child: Text('Drones')),
                 PopupMenuItem(value: '/solarpanels', child: Text('Solarpanels')),
                 PopupMenuItem(value: '/contact', child: Text('Contact Us')),
+                PopupMenuItem(value: '/login', child: Text('Login')),
               ],
             ),
         ],
