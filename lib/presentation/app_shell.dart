@@ -6947,40 +6947,41 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  
   Future<void> _googleLogin() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final returnTo = prefs.getString('returnTo') ?? '/';
-      await prefs.setString('returnTo', returnTo);
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final returnTo = prefs.getString('returnTo') ?? '/';
+    await prefs.setString('returnTo', returnTo);
 
-      final redirectUri = kIsWeb
-          ? '${Uri.base.origin}/oauth2/redirect'
-          : 'allyticlabs://oauth2/redirect';
+    const mobileRedirect = 'allyticlabs://oauth2/redirect';
+    final oauthUri = Uri.parse('$_apiBaseUrl/oauth2/authorize/google').replace(
+      queryParameters: <String, String>{
+        'redirect_uri': mobileRedirect,
+        'platform': 'mobile',
+      },
+    );
 
-      final oauthUri = Uri.parse('$_apiBaseUrl/oauth2/authorize/google').replace(
-        queryParameters: {
-          'redirect_uri': redirectUri,
-          'state': returnTo,
-        },
-      );
+    debugPrint('Google OAuth URL: $oauthUri');
 
-      final launched = await launchUrl(
-        oauthUri,
-        mode: LaunchMode.externalApplication,
-      );
+    final launched = await launchUrl(
+      oauthUri,
+      mode: LaunchMode.externalApplication,
+    );
 
-      if (!launched && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not launch Google sign-in.')),
-        );
-      }
-    } catch (_) {
-      if (!mounted) return;
+    if (!launched && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to start Google sign-in.')),
+        const SnackBar(content: Text('Could not launch Google sign-in.')),
       );
     }
+  } catch (e) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to start Google sign-in: $e')),
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
